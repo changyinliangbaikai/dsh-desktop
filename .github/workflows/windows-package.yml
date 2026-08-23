@@ -41,7 +41,19 @@ jobs:
         run: pnpm run test:staged-runtime
 
       - name: Build NSIS installer
-        run: pnpm run pack:win
+        shell: pwsh
+        run: |
+          $packOutput = pnpm run pack:win 2>&1 | Out-String
+          $packExitCode = $LASTEXITCODE
+          Write-Output $packOutput
+
+          if ($packExitCode -ne 0) {
+            $tailLength = [Math]::Min(24000, $packOutput.Length)
+            $packTail = $packOutput.Substring($packOutput.Length - $tailLength)
+            $escapedTail = $packTail.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Output "::error title=Windows package output::$escapedTail"
+            exit $packExitCode
+          }
         env:
           CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
