@@ -24,7 +24,7 @@
     "stage:runtime": "node scripts/stage-runtime.mjs",
     "verify:staged-runtime": "node scripts/verify-staged-runtime.mjs",
     "pack:dir": "pnpm run verify:staged-runtime && pnpm run build && electron-builder --dir",
-    "pack:win": "pnpm run verify:staged-runtime && pnpm run build && electron-builder --win nsis --x64"
+    "pack:win": "pnpm run verify:staged-runtime && pnpm run build && electron-builder --win nsis --x64 --publish never"
   },
   "devDependencies": {
     "@types/node": "^22.20.0",
