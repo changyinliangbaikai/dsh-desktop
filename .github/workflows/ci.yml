@@ -49,6 +49,18 @@ jobs:
       - name: Lint
         run: pnpm run lint
       - name: Test with coverage
-        run: pnpm run test:coverage
+        shell: pwsh
+        run: |
+          $testOutput = pnpm run test:coverage 2>&1 | Out-String
+          $testExitCode = $LASTEXITCODE
+          Write-Output $testOutput
+
+          if ($testExitCode -ne 0) {
+            $tailLength = [Math]::Min(12000, $testOutput.Length)
+            $testTail = $testOutput.Substring($testOutput.Length - $tailLength)
+            $escapedTail = $testTail.Replace('%', '%25').Replace("`r", '%0D').Replace("`n", '%0A')
+            Write-Output "::error title=Windows test output::$escapedTail"
+            exit $testExitCode
+          }
       - name: Build
         run: pnpm run build
