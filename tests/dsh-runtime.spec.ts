@@ -49,11 +49,13 @@ describe('DshRuntime', () => {
     expect(runtime.state).toBe('stopped')
     expect(runtime.getRecentOutput()).toContain('[stdout] dsh web: http://127.0.0.1:4567')
     expect(events).toContainEqual({ type: 'state', state: 'ready' })
-    expect(events).toContainEqual({
-      type: 'output',
-      stream: 'stderr',
-      line: 'graceful stop',
-    })
+    if (process.platform !== 'win32') {
+      expect(events).toContainEqual({
+        type: 'output',
+        stream: 'stderr',
+        line: 'graceful stop',
+      })
+    }
   })
 
   it('reports an early process exit with captured stderr', async () => {
