@@ -4,6 +4,10 @@ artifactName: Harness-Desktop-${version}-${arch}.${ext}
 asar: true
 directories:
   output: release
+publish:
+  - provider: github
+    owner: changyinliangbaikai
+    repo: dsh-desktop
 files:
   - dist/**
   - package.json

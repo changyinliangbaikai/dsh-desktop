@@ -56,9 +56,21 @@ pnpm run pack:win
 ~~~
 
 The NSIS artifact is written under `release/`. The `Windows package` workflow
-runs the same sequence and uploads the installer. When the signing secrets are
-configured, electron-builder signs it; otherwise the artifact is suitable only
-for development and controlled pilot testing.
+runs the same sequence and uploads the installer. A tag matching the package
+version publishes the validated installer, update metadata, blockmap, and
+SHA-256 checksum file to GitHub Releases:
+
+~~~sh
+release_version=$(node -p "require('./package.json').version")
+git tag "desktop-v${release_version}"
+git push origin "desktop-v${release_version}"
+~~~
+
+The workflow rejects a tag that does not exactly match `desktop-v` plus the
+`package.json` version. A manual workflow run builds only the temporary Actions
+artifact and does not create a Release. When the signing secrets are configured,
+electron-builder signs the installer; otherwise it is suitable only for
+development and controlled pilot testing.
 
 The embedded pnpm executable is prepended to the managed DSH process `PATH`, so
 official profile plugin installation does not depend on a machine-wide pnpm.

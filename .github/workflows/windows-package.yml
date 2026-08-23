@@ -12,6 +12,8 @@ permissions:
 jobs:
   package-windows:
     runs-on: windows-2022
+    outputs:
+      artifact-id: ${{ steps.upload-installer.outputs.artifact-id }}
     env:
       DSH_TELEMETRY_DISABLED: '1'
     steps:
@@ -27,6 +29,18 @@ jobs:
         with:
           node-version: 24.19.0
           cache: pnpm
+
+      - name: Validate release tag version
+        if: github.ref_type == 'tag'
+        shell: pwsh
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          $packageVersion = node -p "require('./package.json').version"
+          $expectedTag = "desktop-v$packageVersion"
+          if ($env:RELEASE_TAG -ne $expectedTag) {
+            throw "Release tag '$env:RELEASE_TAG' does not match package version '$packageVersion' (expected '$expectedTag')."
+          }
 
       - name: Install desktop dependencies
         run: pnpm install --frozen-lockfile
@@ -46,13 +60,108 @@ jobs:
           CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
           CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
 
+      - name: Validate package outputs
+        shell: pwsh
+        run: |
+          $packageVersion = node -p "require('./package.json').version"
+          $expectedFiles = @(
+            "release/Harness-Desktop-$packageVersion-x64.exe",
+            "release/Harness-Desktop-$packageVersion-x64.exe.blockmap",
+            "release/latest.yml"
+          )
+          $missingFiles = @($expectedFiles | Where-Object { -not (Test-Path -LiteralPath $_ -PathType Leaf) })
+          if ($missingFiles.Count -gt 0) {
+            throw "Missing release files: $($missingFiles -join ', ')"
+          }
+
       - name: Upload installer
-        uses: actions/upload-artifact@v4
+        id: upload-installer
+        uses: actions/upload-artifact@v7
         with:
           name: harness-desktop-windows-x64
           path: |
             release/*.exe
-            release/*.yml
+            release/latest.yml
             release/*.blockmap
           if-no-files-found: error
+          compression-level: 0
           retention-days: 14
+
+  release:
+    name: Publish GitHub Release
+    needs: package-windows
+    if: github.ref_type == 'tag' && startsWith(github.ref_name, 'desktop-v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Prepare release metadata
+        id: metadata
+        shell: bash
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="${RELEASE_TAG#desktop-v}"
+          if [[ -z "$version" || "$version" == "$RELEASE_TAG" ]]; then
+            echo "Invalid release tag: $RELEASE_TAG" >&2
+            exit 1
+          fi
+
+          prerelease=false
+          if [[ "$version" == *-* ]]; then
+            prerelease=true
+          fi
+
+          {
+            echo "version=$version"
+            echo "prerelease=$prerelease"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Download installer artifact
+        uses: actions/download-artifact@v8
+        with:
+          artifact-ids: ${{ needs.package-windows.outputs.artifact-id }}
+          path: release-files
+          digest-mismatch: error
+
+      - name: Verify release files and write checksums
+        shell: bash
+        env:
+          RELEASE_VERSION: ${{ steps.metadata.outputs.version }}
+        run: |
+          set -euo pipefail
+          installer="Harness-Desktop-${RELEASE_VERSION}-x64.exe"
+          expected_files=(
+            "release-files/$installer"
+            "release-files/$installer.blockmap"
+            "release-files/latest.yml"
+          )
+
+          for file in "${expected_files[@]}"; do
+            if [[ ! -f "$file" ]]; then
+              echo "Missing release file: $file" >&2
+              exit 1
+            fi
+          done
+
+          (
+            cd release-files
+            sha256sum "$installer" "$installer.blockmap" latest.yml > SHA256SUMS.txt
+          )
+          cat release-files/SHA256SUMS.txt
+
+      - name: Publish GitHub Release
+        uses: softprops/action-gh-release@v3
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: Harness Desktop v${{ steps.metadata.outputs.version }}
+          draft: false
+          prerelease: ${{ steps.metadata.outputs.prerelease }}
+          generate_release_notes: true
+          fail_on_unmatched_files: true
+          files: |
+            release-files/Harness-Desktop-${{ steps.metadata.outputs.version }}-x64.exe
+            release-files/Harness-Desktop-${{ steps.metadata.outputs.version }}-x64.exe.blockmap
+            release-files/latest.yml
+            release-files/SHA256SUMS.txt
