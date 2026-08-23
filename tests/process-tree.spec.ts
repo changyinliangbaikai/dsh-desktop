@@ -30,6 +30,20 @@ describe('signalProcessTree', () => {
     expect(killDirect).not.toHaveBeenCalled()
   })
 
+  it('uses process.kill for the default POSIX group signal', () => {
+    const processKill = vi.spyOn(process, 'kill').mockReturnValue(true)
+    const killDirect = vi.fn()
+
+    try {
+      signalProcessTree('linux', 92, 'SIGTERM', { killDirect })
+
+      expect(processKill).toHaveBeenCalledWith(-92, 'SIGTERM')
+      expect(killDirect).not.toHaveBeenCalled()
+    } finally {
+      processKill.mockRestore()
+    }
+  })
+
   it('falls back to the direct child when the group is already absent', () => {
     const killDirect = vi.fn()
     const missingGroup = Object.assign(new Error('missing'), { code: 'ESRCH' })
