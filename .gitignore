@@ -1,0 +1,9 @@
+node_modules/
+dist/
+coverage/
+release/
+resources/runtime/**
+!resources/runtime/README.md
+*.log
+*.tsbuildinfo
+.DS_Store

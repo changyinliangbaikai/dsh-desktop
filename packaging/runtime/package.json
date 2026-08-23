@@ -1,0 +1,10 @@
+{
+  "name": "dsh-desktop-runtime",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Locked runtime closure embedded in Harness Desktop.",
+  "dependencies": {
+    "@deepseek-ai/dsh": "0.1.1-rc.2",
+    "pnpm": "11.7.0"
+  }
+}

@@ -1,0 +1,58 @@
+name: Windows package
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - desktop-v*
+
+permissions:
+  contents: read
+
+jobs:
+  package-windows:
+    runs-on: windows-2022
+    env:
+      DSH_TELEMETRY_DISABLED: '1'
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.19.0
+          cache: pnpm
+
+      - name: Install desktop dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Run shell gates
+        run: pnpm run check
+
+      - name: Stage pinned DSH, Node, and pnpm runtime
+        run: pnpm run stage:runtime
+
+      - name: Smoke-test staged official runtime
+        run: pnpm run test:staged-runtime
+
+      - name: Build NSIS installer
+        run: pnpm run pack:win
+        env:
+          CSC_LINK: ${{ secrets.WINDOWS_CSC_LINK }}
+          CSC_KEY_PASSWORD: ${{ secrets.WINDOWS_CSC_KEY_PASSWORD }}
+
+      - name: Upload installer
+        uses: actions/upload-artifact@v4
+        with:
+          name: harness-desktop-windows-x64
+          path: |
+            release/*.exe
+            release/*.yml
+            release/*.blockmap
+          if-no-files-found: error
+          retention-days: 14
