@@ -14,7 +14,10 @@ files:
 extraResources:
   - from: resources/runtime
     to: runtime
+mac:
+  icon: build/icon.icns
 win:
+  icon: build/icon.ico
   target:
     - target: nsis
       arch:
@@ -23,6 +26,8 @@ nsis:
   oneClick: false
   perMachine: true
   allowElevation: true
+  installerIcon: build/icon.ico
+  uninstallerIcon: build/icon.ico
   createDesktopShortcut: true
   createStartMenuShortcut: true
   deleteAppDataOnUninstall: false

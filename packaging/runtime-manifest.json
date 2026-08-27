@@ -7,5 +7,14 @@
     "npmIntegrity": "sha512-UP1UIh6q3Gme/yXRn/QL2P8IsVlv8Shpg22TRJIZPsCRWLm4CBiA1MUvXmJAfsOEETBMLAl+xWPtFw6ICsN3wg=="
   },
   "node": "24.19.0",
-  "pnpm": "11.7.0"
+  "pnpm": "11.7.0",
+  "embeddedPlugins": [
+    {
+      "name": "dsh-offline-plugin-installer",
+      "version": "0.1.0",
+      "archive": "dsh-offline-plugin-installer-0.1.0.tgz",
+      "integrity": "sha512-wCgcY//+/b1n3mZ8BLpvA7V5MWZNify3uokoC2dRQOzip46TqgoB2LzFz0kBtV+6g0Vrjj52Q5VbbUZ0JSxfmQ==",
+      "profile": "web"
+    }
+  ]
 }

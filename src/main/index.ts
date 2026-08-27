@@ -1,5 +1,7 @@
 import { app, BrowserWindow, shell } from 'electron'
+import { join } from 'node:path'
 import { DshRuntime, type DshRuntimeEvent } from './dsh-runtime.js'
+import { seedEmbeddedProfilePlugins } from './embedded-plugins.js'
 import { classifyNavigation } from './navigation-policy.js'
 import { isTrustedDshPermissionOrigin } from './permission-policy.js'
 import { resolveDshLaunchSpec } from './runtime-config.js'
@@ -114,6 +116,12 @@ async function bootstrap(): Promise<void> {
   runtime = new DshRuntime({ launch, onEvent: observeRuntime })
 
   try {
+    if (app.isPackaged) {
+      await seedEmbeddedProfilePlugins({
+        runtimeRoot: join(process.resourcesPath, 'runtime'),
+        launch,
+      })
+    }
     dshOrigin = await runtime.start()
     await window.loadURL(dshOrigin)
   } catch (error) {

@@ -7,8 +7,11 @@ flowchart LR
   Main["Electron Main"]
   Runtime["Pinned Node.js"]
   DSH["Official dsh web"]
+  Seed["Reviewed offline-installer archive"]
   UI["Official React UI"]
   Main --> Runtime
+  Main -->|verify + official dsh plugin add| Seed
+  Seed --> DSH
   Runtime --> DSH
   Main --> UI
   UI <--> DSH
@@ -20,6 +23,8 @@ The packaged runtime is generated from a reviewed lock under
 `packaging/runtime/`. Its closure contains the official npm release, Node
 24.19.0 copied from the target build runner, and pnpm 11.7.0. The provenance
 manifest pins the upstream tag, commit, version, and npm integrity.
+It also pins every embedded plugin archive by name, version, target Profile,
+filename, and SHA-512 integrity. Staging copies only matching reviewed inputs.
 
 Browser-host permissions are granted only when Electron identifies both the
 requesting WebContents and requesting origin as that validated DSH surface.
@@ -27,6 +32,13 @@ This keeps the official UI's clipboard and future browser-backed capabilities
 available without granting anything to an external navigation.
 
 ## Startup contract
+
+For a packaged build, Desktop first verifies and idempotently installs each
+embedded archive into its declared managed Profile by invoking the same pinned
+DSH entry with `plugin --profile … add … --offline --ignore-scripts
+--save-exact`. It skips only when the installed package version, Profile bundle
+row, and persistent archive dependency all match. A runtime upgrade that moves
+the archive path therefore reconciles the Profile again.
 
 The shell launches:
 
@@ -50,6 +62,7 @@ Desktop owns:
 - DSH process startup, diagnostics, shutdown, and restart;
 - loopback URL validation and navigation handling;
 - runtime staging, Windows installation, and updates.
+- integrity verification and first-run seeding of reviewed plugin archives.
 
 DeepSeek Harness owns:
 
@@ -58,6 +71,8 @@ DeepSeek Harness owns:
 - PowerShell, jobs, plugins, models, skills, subagents, and workflows.
 
 No desktop transport or alternative Tool Runtime is introduced.
+Archive inspection, upload policy, the Web page, and later offline installs are
+owned by `dsh-offline-plugin-installer`, not by Electron.
 
 Shutdown is process-tree scoped. POSIX builds signal the detached DSH process
 group; Windows builds use `taskkill /T`, escalating to `/F` after the deadline.

@@ -1,5 +1,6 @@
 import { execFileSync } from 'node:child_process'
-import { existsSync, readFileSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { createReadStream, existsSync, readFileSync } from 'node:fs'
 import { chmod, copyFile, cp, mkdir, readFile, rm, writeFile } from 'node:fs/promises'
 import { basename, dirname, join, resolve, sep } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -14,6 +15,45 @@ const sourceWorkspace = join(projectRoot, 'packaging', 'runtime', 'pnpm-workspac
 const provenancePath = join(projectRoot, 'packaging', 'runtime-manifest.json')
 const runtimeReadmePath = join(resourcesRoot, 'README.md')
 
+function embeddedPlugins(value) {
+  if (!Array.isArray(value)) throw new Error('Runtime manifest embeddedPlugins must be an array.')
+  return value.map((entry, index) => {
+    if (entry === null || typeof entry !== 'object'
+      || typeof entry.name !== 'string'
+      || typeof entry.version !== 'string'
+      || typeof entry.archive !== 'string'
+      || basename(entry.archive) !== entry.archive
+      || !entry.archive.endsWith('.tgz')
+      || typeof entry.integrity !== 'string'
+      || !entry.integrity.startsWith('sha512-')
+      || typeof entry.profile !== 'string') {
+      throw new Error('Runtime manifest embedded plugin ' + String(index) + ' is invalid.')
+    }
+    return entry
+  })
+}
+
+async function sha512(path) {
+  const hash = createHash('sha512')
+  for await (const chunk of createReadStream(path)) hash.update(chunk)
+  return 'sha512-' + hash.digest('base64')
+}
+
+function resolveArchiveSource(filename) {
+  const explicit = process.env.DSH_DESKTOP_PLUGIN_ARCHIVE_DIR
+  const directories = [
+    ...(explicit === undefined || explicit.trim() === '' ? [] : [resolve(explicit)]),
+    join(projectRoot, 'packaging', 'plugins'),
+    join(projectRoot, '..', '.artifacts', 'packages'),
+  ]
+  const source = directories.map(directory => join(directory, filename)).find(path => existsSync(path))
+  if (source === undefined) {
+    throw new Error('Reviewed embedded plugin archive ' + filename + ' was not found. '
+      + 'Set DSH_DESKTOP_PLUGIN_ARCHIVE_DIR or place it under the integration .artifacts/packages directory.')
+  }
+  return source
+}
+
 function assertSafeTarget(target) {
   if (!target.startsWith(projectRoot + sep) || target === projectRoot) {
     throw new Error('Refusing to replace unsafe runtime target ' + target + '.')
@@ -26,6 +66,16 @@ if (!existsSync(sourceLock)) {
 }
 
 const provenance = JSON.parse(readFileSync(provenancePath, 'utf8'))
+const plugins = embeddedPlugins(provenance.embeddedPlugins)
+const pluginSources = []
+for (const plugin of plugins) {
+  const source = resolveArchiveSource(plugin.archive)
+  const actualIntegrity = await sha512(source)
+  if (actualIntegrity !== plugin.integrity) {
+    throw new Error('Embedded plugin archive ' + plugin.archive + ' failed reviewed integrity verification.')
+  }
+  pluginSources.push({ plugin, source })
+}
 const runtimeReadme = await readFile(runtimeReadmePath, 'utf8')
 const lockText = await readFile(sourceLock, 'utf8')
 if (!lockText.includes(provenance.deepSeekHarness.npmIntegrity)) {
@@ -87,13 +137,22 @@ if (stagedVersion !== provenance.deepSeekHarness.version) {
 }
 await rm(join(resourcesRoot, '.verification-home'), { recursive: true, force: true })
 
+if (pluginSources.length > 0) {
+  const pluginsDestination = join(resourcesRoot, 'plugins')
+  await mkdir(pluginsDestination, { recursive: true })
+  for (const { plugin, source } of pluginSources) {
+    await copyFile(source, join(pluginsDestination, plugin.archive))
+  }
+}
 await cp(provenancePath, join(resourcesRoot, basename(provenancePath)))
 await writeFile(join(resourcesRoot, 'STAGED'), [
   'Harness Desktop embedded runtime',
   'DSH ' + provenance.deepSeekHarness.version,
   'Node ' + provenance.node,
   'pnpm ' + provenance.pnpm,
+  ...plugins.map(plugin => 'Plugin ' + plugin.name + ' ' + plugin.version + ' -> Profile ' + plugin.profile),
   '',
 ].join('\n'))
 
-console.log('stage-runtime: DSH ' + stagedVersion + ' with Node ' + process.version + ' staged at ' + resourcesRoot)
+console.log('stage-runtime: DSH ' + stagedVersion + ' with Node ' + process.version
+  + ' and ' + String(plugins.length) + ' embedded plugin archive(s) staged at ' + resourcesRoot)

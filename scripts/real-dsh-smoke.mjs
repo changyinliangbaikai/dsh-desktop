@@ -5,6 +5,7 @@ import { tmpdir } from 'node:os'
 import { delimiter, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { DshRuntime } from '../dist/main/dsh-runtime.js'
+import { seedEmbeddedProfilePlugins } from '../dist/main/embedded-plugins.js'
 
 const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const staged = process.argv.includes('--staged')
@@ -25,23 +26,45 @@ const fixtureRoot = await mkdtemp(join(tmpdir(), 'dsh-desktop-real-'))
 const dshHome = join(fixtureRoot, 'home')
 const workspace = join(fixtureRoot, 'workspace')
 await mkdir(workspace, { recursive: true })
+const runtimeDshRoot = resolve(dirname(entry), '..', '..', '..', '..')
+const pathKey = Object.keys(process.env).find(key => key.toLowerCase() === 'path') ?? 'PATH'
+const managedPath = staged
+  ? [dirname(nodeCommand), join(runtimeDshRoot, 'node_modules', '.bin'), process.env[pathKey]]
+    .filter(Boolean)
+    .join(delimiter)
+  : process.env[pathKey]
 
-const runtime = new DshRuntime({
-  launch: {
-    command: nodeCommand,
-    args: [entry, 'web', '--no-open', '--host', '127.0.0.1', '--port', '0'],
-    cwd: workspace,
-    env: {
-      ...process.env,
-      DSH_HOME: dshHome,
-      DSH_TELEMETRY_DISABLED: '1',
-    },
+const launch = {
+  command: nodeCommand,
+  args: [entry, 'web', '--no-open', '--host', '127.0.0.1', '--port', '0'],
+  cwd: workspace,
+  env: {
+    ...process.env,
+    DSH_HOME: dshHome,
+    DSH_TELEMETRY_DISABLED: '1',
+    npm_config_cache: join(fixtureRoot, 'npm-cache'),
+    PNPM_HOME: join(fixtureRoot, 'pnpm-home'),
+    XDG_CACHE_HOME: join(fixtureRoot, 'xdg-cache'),
+    XDG_DATA_HOME: join(fixtureRoot, 'xdg-data'),
+    [pathKey]: managedPath,
   },
+}
+const runtime = new DshRuntime({
+  launch,
   startupTimeoutMs: 90_000,
   shutdownTimeoutMs: 7_000,
 })
 
 try {
+  if (staged) {
+    const seeded = await seedEmbeddedProfilePlugins({
+      runtimeRoot: join(projectRoot, 'resources', 'runtime'),
+      launch,
+    })
+    if (!seeded.installed.includes('dsh-offline-plugin-installer')) {
+      throw new Error('Staged runtime did not seed dsh-offline-plugin-installer into the fresh Profile.')
+    }
+  }
   const url = await runtime.start()
   const response = await fetch(url, { signal: AbortSignal.timeout(10_000) })
   const html = await response.text()
@@ -52,20 +75,19 @@ try {
   }
   console.log('real-dsh-smoke: ready ' + url + ', HTTP ' + String(response.status))
   if (staged) {
-    const runtimeDshRoot = resolve(dirname(entry), '..', '..', '..', '..')
-    const pathKey = Object.keys(process.env).find(key => key.toLowerCase() === 'path') ?? 'PATH'
+    const installerResponse = await fetch(new URL('/dsh-offline-plugin-installer/session.json', url), {
+      signal: AbortSignal.timeout(10_000),
+    })
+    const installerSession = await installerResponse.json()
+    if (!installerResponse.ok || installerSession.profile !== 'web'
+      || typeof installerSession.token !== 'string' || installerSession.token.length < 32) {
+      throw new Error('Embedded offline installer Host route did not return a valid session.')
+    }
+    console.log('real-dsh-smoke: embedded offline installer route ready')
     const pluginEnvironment = {
-      ...process.env,
-      DSH_HOME: dshHome,
+      ...launch.env,
       npm_config_offline: 'true',
       PNPM_CONFIG_OFFLINE: 'true',
-      npm_config_cache: join(fixtureRoot, 'npm-cache'),
-      PNPM_HOME: join(fixtureRoot, 'pnpm-home'),
-      XDG_CACHE_HOME: join(fixtureRoot, 'xdg-cache'),
-      XDG_DATA_HOME: join(fixtureRoot, 'xdg-data'),
-      [pathKey]: [dirname(nodeCommand), join(runtimeDshRoot, 'node_modules', '.bin'), process.env[pathKey]]
-        .filter(Boolean)
-        .join(delimiter),
     }
     const pluginOutput = execFileSync(
       nodeCommand,

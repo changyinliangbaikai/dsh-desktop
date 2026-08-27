@@ -9,6 +9,12 @@ selector exposes `workspace-write` and confirmed `danger-full-access`; the
 current upstream profile selects PowerShell on Windows and Bash on POSIX. The
 official plugin flow is retained and uses the bundled pnpm.
 
+Packaged builds also carry one reviewed `dsh-offline-plugin-installer` archive.
+Before the official Web Profile starts, the shell verifies that archive's
+SHA-512 integrity and idempotently seeds it through the official `dsh plugin`
+CLI. The resulting **Settings → Plugins → Offline install** page remains
+plugin-owned; Desktop owns only immutable staging and first-run installation.
+
 ## Pinned upstream
 
 - DeepSeek Harness release: 0.1.1-rc.2
@@ -55,6 +61,11 @@ pnpm run test:staged-runtime
 pnpm run pack:win
 ~~~
 
+The repository carries the exact reviewed offline-installer archive under
+`packaging/plugins/`, so the default GitHub and local release paths are
+self-contained. `DSH_DESKTOP_PLUGIN_ARCHIVE_DIR` remains an optional explicit
+override for testing another reviewed archive with the same manifest integrity.
+
 The NSIS artifact is written under `release/`. The `Windows package` workflow
 runs the same sequence and uploads the installer. A tag matching the package
 version publishes the validated installer, update metadata, blockmap, and
@@ -74,6 +85,15 @@ development and controlled pilot testing.
 
 The embedded pnpm executable is prepended to the managed DSH process `PATH`, so
 official profile plugin installation does not depend on a machine-wide pnpm.
+`stage:runtime` accepts reviewed plugin inputs from
+`DSH_DESKTOP_PLUGIN_ARCHIVE_DIR`, `packaging/plugins/`, or the parent
+integration workspace's `.artifacts/packages/`; it rejects any archive whose
+integrity differs from `packaging/runtime-manifest.json`.
+
+Packaged executables, shortcuts, the NSIS installer, and the macOS application
+use the blue DeepSeek whale asset retained under `build/`. Its source is copied
+from the pinned official Harness website favicon and the generated ICO/ICNS
+containers are checked by the repository gate.
 
 ## Current milestone
 

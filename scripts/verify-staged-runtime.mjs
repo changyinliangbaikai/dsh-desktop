@@ -1,3 +1,4 @@
+import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
@@ -27,4 +28,17 @@ if (installed.version !== provenance.deepSeekHarness.version) {
   throw new Error('Staged DSH is ' + installed.version + ', expected ' + provenance.deepSeekHarness.version + '.')
 }
 
-console.log('verify-staged-runtime: complete DSH ' + installed.version + ' runtime found')
+if (!Array.isArray(provenance.embeddedPlugins)) {
+  throw new Error('Runtime manifest embeddedPlugins must be an array.')
+}
+for (const plugin of provenance.embeddedPlugins) {
+  const archivePath = join(runtimeRoot, 'plugins', plugin.archive)
+  if (!existsSync(archivePath)) throw new Error('Embedded plugin archive is missing: ' + plugin.archive)
+  const actualIntegrity = 'sha512-' + createHash('sha512').update(readFileSync(archivePath)).digest('base64')
+  if (actualIntegrity !== plugin.integrity) {
+    throw new Error('Embedded plugin archive failed integrity verification: ' + plugin.archive)
+  }
+}
+
+console.log('verify-staged-runtime: complete DSH ' + installed.version + ' runtime and '
+  + String(provenance.embeddedPlugins.length) + ' embedded plugin archive(s) found')

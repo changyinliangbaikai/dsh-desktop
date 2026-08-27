@@ -4,6 +4,9 @@ coverage/
 release/
 resources/runtime/**
 !resources/runtime/README.md
+packaging/plugins/*
+!packaging/plugins/README.md
+!packaging/plugins/dsh-offline-plugin-installer-0.1.0.tgz
 *.log
 *.tsbuildinfo
 .DS_Store
