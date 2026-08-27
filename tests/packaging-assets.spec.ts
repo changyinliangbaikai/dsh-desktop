@@ -42,6 +42,7 @@ describe('packaging assets', () => {
     expect(config).toContain('win:\n  icon: build/icon.ico')
     expect(config).toContain('installerIcon: build/icon.ico')
     expect(config).toContain('uninstallerIcon: build/icon.ico')
+    expect(config).toContain('  - from: build/icon.ico\n    to: tray-icon.ico')
   })
 
   it('commits the exact reviewed offline installer archive used by CI staging', () => {

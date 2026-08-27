@@ -6,4 +6,6 @@ official DeepSeek Harness website asset at `website/public/favicon.svg`, commit
 
 `icon.png`, `icon.ico`, and `icon.icns` are deterministic packaging derivatives
 of that source. Windows uses the multi-resolution ICO for the executable,
-shortcuts, installer, and uninstaller. macOS uses the ICNS container.
+shortcuts, installer, uninstaller, and notification-area icon. The Windows
+package copies the ICO to an unpacked resource for runtime tray access. macOS
+uses the ICNS container.

@@ -9,6 +9,11 @@ selector exposes `workspace-write` and confirmed `danger-full-access`; the
 current upstream profile selects PowerShell on Windows and Bash on POSIX. The
 official plugin flow is retained and uses the bundled pnpm.
 
+On Windows, the title-bar close button hides the client to the notification
+area instead of stopping it. Click the DeepSeek whale tray icon, or choose
+**打开 Harness Desktop** from its context menu, to restore the window. Right-click
+the icon and choose **退出** to stop the managed DSH runtime and exit completely.
+
 Packaged builds also carry one reviewed `dsh-offline-plugin-installer` archive.
 Before the official Web Profile starts, the shell verifies that archive's
 SHA-512 integrity and idempotently seeds it through the official `dsh plugin`
@@ -98,8 +103,9 @@ containers are checked by the repository gate.
 ## Current milestone
 
 P0 covers runtime startup, ready-URL validation, origin-scoped browser permissions,
-single-instance behavior, status/error surfaces, process-tree shutdown, locked
-runtime staging, real DSH smoke tests, and a Windows NSIS workflow. Native
-Windows acceptance and production certificate signing remain release gates.
+single-instance behavior, Windows close-to-tray behavior, status/error surfaces,
+process-tree shutdown, locked runtime staging, real DSH smoke tests, and a Windows
+NSIS workflow. Native Windows acceptance and production certificate signing
+remain release gates.
 
 See [architecture](docs/architecture.md) and [testing](docs/testing.md).

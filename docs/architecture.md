@@ -31,6 +31,20 @@ requesting WebContents and requesting origin as that validated DSH surface.
 This keeps the official UI's clipboard and future browser-backed capabilities
 available without granting anything to an external navigation.
 
+## Windows window lifecycle
+
+On Windows, a normal main-window close request is canceled and the window is
+hidden while both Electron and the managed DSH runtime continue running. The
+notification-area icon restores and focuses the existing window; its native
+context menu also exposes an explicit exit action. A second application launch
+uses the same restore path.
+
+Explicit application exit is tracked separately from runtime shutdown progress.
+It first disables close-to-tray interception, then stops the DSH process tree,
+and only after that allows Electron to close the window and remove the tray icon.
+The tray ICO is shipped as an unpacked resource because it is needed at runtime,
+not only while electron-builder stamps the executable.
+
 ## Startup contract
 
 For a packaged build, Desktop first verifies and idempotently installs each
@@ -59,6 +73,7 @@ Only an HTTP URL with hostname 127.0.0.1, an explicit non-zero port, root path, 
 Desktop owns:
 
 - single instance and native window lifecycle;
+- Windows notification-area integration and explicit application exit;
 - DSH process startup, diagnostics, shutdown, and restart;
 - loopback URL validation and navigation handling;
 - runtime staging, Windows installation, and updates.

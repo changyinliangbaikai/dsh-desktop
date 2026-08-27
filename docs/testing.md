@@ -2,12 +2,18 @@
 
 ## Test levels
 
-1. Unit tests validate ready-line parsing, origin policy, runtime layout, and status-document escaping.
+1. Unit tests validate ready-line parsing, origin policy, runtime layout,
+   status-document escaping, Windows close-to-tray policy, window restoration,
+   tray actions, and packaged tray-icon resolution.
 2. Process contract tests launch a real fake Node child to validate partial output, early exit, invalid ready URLs, timeout, graceful stop, and forced stop.
 3. The real-runtime smoke launches the built official DSH CLI, validates its HTTP application shell, verifies exact embedded-installer seeding and its session route, exercises embedded-pnpm plugin add/remove for staged builds, and verifies shutdown.
-4. Packaging tests verify the committed installer archive against the runtime manifest and inspect the DeepSeek whale PNG/ICO/ICNS containers and electron-builder wiring.
+4. Packaging tests verify the committed installer archive against the runtime
+   manifest, inspect the DeepSeek whale PNG/ICO/ICNS containers, and ensure the
+   Windows tray ICO is copied as an unpacked runtime resource.
 5. Electron smoke tests start the packaged shell and verify that the official DSH UI becomes visible.
-6. Windows native tests validate PowerShell, the official ACL Sandbox, plugin installation, process cleanup, paths, NSIS, and upgrade.
+6. Windows native tests validate PowerShell, the official ACL Sandbox, plugin
+   installation, close-to-tray and explicit-exit behavior, process cleanup,
+   paths, NSIS, and upgrade.
 
 ## Local gates
 

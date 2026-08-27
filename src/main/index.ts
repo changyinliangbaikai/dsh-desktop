@@ -1,4 +1,4 @@
-import { app, BrowserWindow, shell } from 'electron'
+import { app, BrowserWindow, Menu, shell, Tray } from 'electron'
 import { join } from 'node:path'
 import { DshRuntime, type DshRuntimeEvent } from './dsh-runtime.js'
 import { seedEmbeddedProfilePlugins } from './embedded-plugins.js'
@@ -6,11 +6,19 @@ import { classifyNavigation } from './navigation-policy.js'
 import { isTrustedDshPermissionOrigin } from './permission-policy.js'
 import { resolveDshLaunchSpec } from './runtime-config.js'
 import { renderStatusDocument, toDataUrl } from './status-document.js'
+import {
+  createTrayMenuTemplate,
+  handleMainWindowClose,
+  resolveTrayIconPath,
+  revealMainWindow,
+} from './window-lifecycle.js'
 
 let mainWindow: BrowserWindow | undefined
+let tray: Tray | undefined
 let runtime: DshRuntime | undefined
 let dshOrigin: string | undefined
 let quitRequested = false
+let runtimeStopStarted = false
 let runtimeStopped = false
 
 function loadStatus(
@@ -72,6 +80,26 @@ function configureRenderer(window: BrowserWindow): void {
   })
 }
 
+function showMainWindow(): void {
+  revealMainWindow(mainWindow)
+}
+
+function configureWindowsTray(): void {
+  if (process.platform !== 'win32' || tray !== undefined) return
+  const nextTray = new Tray(resolveTrayIconPath({
+    appPath: app.getAppPath(),
+    resourcesPath: process.resourcesPath,
+    isPackaged: app.isPackaged,
+  }))
+  nextTray.setToolTip('Harness Desktop')
+  nextTray.setContextMenu(Menu.buildFromTemplate(createTrayMenuTemplate({
+    showWindow: showMainWindow,
+    quitApplication: () => app.quit(),
+  })))
+  nextTray.on('click', showMainWindow)
+  tray = nextTray
+}
+
 async function bootstrap(): Promise<void> {
   const window = new BrowserWindow({
     title: 'Harness Desktop',
@@ -90,8 +118,17 @@ async function bootstrap(): Promise<void> {
   })
   mainWindow = window
   configureRenderer(window)
+  configureWindowsTray()
   window.once('ready-to-show', () => {
     window.show()
+  })
+  window.on('close', event => {
+    handleMainWindowClose({
+      event,
+      window,
+      platform: process.platform,
+      quitRequested,
+    })
   })
   window.on('closed', () => {
     if (mainWindow === window) mainWindow = undefined
@@ -140,10 +177,7 @@ if (!hasSingleInstanceLock) {
   app.quit()
 } else {
   app.on('second-instance', () => {
-    if (mainWindow === undefined) return
-    if (mainWindow.isMinimized()) mainWindow.restore()
-    mainWindow.show()
-    mainWindow.focus()
+    showMainWindow()
   })
 
   app.whenReady().then(bootstrap).catch(error => {
@@ -156,13 +190,21 @@ if (!hasSingleInstanceLock) {
   })
 
   app.on('before-quit', event => {
+    quitRequested = true
     if (runtime === undefined || runtimeStopped) return
     event.preventDefault()
-    if (quitRequested) return
-    quitRequested = true
-    void runtime.stop().finally(() => {
+    if (runtimeStopStarted) return
+    runtimeStopStarted = true
+    void runtime.stop().catch(error => {
+      console.error('[dsh] Failed to stop the managed runtime cleanly.', error)
+    }).finally(() => {
       runtimeStopped = true
       app.quit()
     })
+  })
+
+  app.on('will-quit', () => {
+    tray?.destroy()
+    tray = undefined
   })
 }
