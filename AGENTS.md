@@ -14,6 +14,8 @@ This repository is the thin Windows desktop shell for the official DeepSeek Harn
 - ESM and strict TypeScript only.
 - Keep Electron-specific glue thin; move parsing, policy, and lifecycle logic into independently testable modules.
 - Validate every process, URL, filesystem, and renderer boundary.
+- Treat the official Web ready URL as credential-bearing input: validate the exact loopback/authentication shape, retain it for the first navigation, and redact credentials before recording lifecycle output or diagnostics.
+- Re-resolve the embedded runtime from a fresh lock graph when the Harness version changes, pin shared runtime singletons required by published peers, and require `pnpm peers check` plus a real staged-runtime startup before accepting the closure.
 - Use maintained dependencies only when they remove meaningful owned code.
 - Add behavior tests before or with implementation.
 - Every bug fix adds a regression test.

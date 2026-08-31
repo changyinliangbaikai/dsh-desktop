@@ -6,7 +6,7 @@
    status-document escaping, Windows close-to-tray policy, window restoration,
    tray actions, and packaged tray-icon resolution.
 2. Process contract tests launch a real fake Node child to validate partial output, early exit, invalid ready URLs, timeout, graceful stop, and forced stop.
-3. The real-runtime smoke launches the built official DSH CLI, validates its HTTP application shell, verifies exact embedded-installer seeding and its session route, exercises embedded-pnpm plugin add/remove for staged builds, and verifies shutdown.
+3. The real-runtime smoke launches the built official DSH CLI, exchanges the credential-bearing loopback ready URL for its authority-bound browser cookie, validates the authenticated HTTP application shell, verifies exact embedded-installer seeding and its session route, exercises embedded-pnpm plugin add/remove for staged builds, and verifies shutdown without logging the launch token.
 4. Packaging tests verify the committed installer archive against the runtime
    manifest, inspect the DeepSeek whale PNG/ICO/ICNS containers, and ensure the
    Windows tray ICO is copied as an unpacked runtime resource.

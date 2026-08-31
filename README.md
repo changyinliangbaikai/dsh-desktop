@@ -22,9 +22,9 @@ plugin-owned; Desktop owns only immutable staging and first-run installation.
 
 ## Pinned upstream
 
-- DeepSeek Harness release: 0.1.1-rc.2
-- Git tag: dsh-v0.1.1-rc.2
-- Commit: b150a551b8d465e31e418e1b2eaf5e79bbb7d28e
+- DeepSeek Harness release: 0.1.2-alpha.2
+- Git tag: dsh-v0.1.2-alpha.2
+- Commit: 0a53fb55bea101816fa226bb964ae2bed71c343b
 - Node: ^22.19.0 or >=24.0.0
 - pnpm: 11.7.0
 

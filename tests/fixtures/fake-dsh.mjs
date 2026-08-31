@@ -16,7 +16,7 @@ if (mode === 'silent') {
     process.stdout.write('ready\n')
     process.stdout.write('dsh web: http://127.0.0.1:')
     setTimeout(() => {
-      process.stdout.write('4567\n')
+      process.stdout.write('4567/?token=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA\n')
     }, 5)
   }, 5)
   setInterval(() => {}, 1_000)

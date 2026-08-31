@@ -9,6 +9,7 @@ import {
 } from '../src/main/dsh-runtime.js'
 
 const fixture = fileURLToPath(new URL('./fixtures/fake-dsh.mjs', import.meta.url))
+const authenticatedUrl = 'http://127.0.0.1:4567/?token=AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA'
 
 function runtimeFor(
   mode: string,
@@ -40,14 +41,15 @@ describe('DshRuntime', () => {
     const events: DshRuntimeEvent[] = []
     const runtime = runtimeFor('ready', { events })
 
-    await expect(runtime.start()).resolves.toBe('http://127.0.0.1:4567')
+    await expect(runtime.start()).resolves.toBe(authenticatedUrl)
     expect(runtime.state).toBe('ready')
     await expect(runtime.start()).rejects.toThrow('Cannot start DSH')
 
     await runtime.stop()
 
     expect(runtime.state).toBe('stopped')
-    expect(runtime.getRecentOutput()).toContain('[stdout] dsh web: http://127.0.0.1:4567')
+    expect(runtime.getRecentOutput()).toContain('[stdout] dsh web: http://127.0.0.1:4567/?token=<redacted>')
+    expect(runtime.getRecentOutput().join('\n')).not.toContain('AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA')
     expect(events).toContainEqual({ type: 'state', state: 'ready' })
     if (process.platform !== 'win32') {
       expect(events).toContainEqual({
@@ -106,7 +108,7 @@ describe('DshRuntime', () => {
   it('rejects an unsafe ready URL and stops the process', async () => {
     const runtime = runtimeFor('remote-url')
 
-    await expect(runtime.start()).rejects.toThrow('outside the accepted loopback origin')
+    await expect(runtime.start()).rejects.toThrow('outside the accepted authenticated loopback surface')
     await vi.waitFor(() => {
       expect(runtime.state).toBe('stopped')
     })
@@ -124,7 +126,7 @@ describe('DshRuntime', () => {
   it('forces a process that ignores the graceful signal', async () => {
     const runtime = runtimeFor('ignore-term', { shutdownTimeoutMs: 20 })
 
-    await expect(runtime.start()).resolves.toBe('http://127.0.0.1:4567')
+    await expect(runtime.start()).resolves.toBe(authenticatedUrl)
     await expect(runtime.stop()).resolves.toBeUndefined()
     expect(runtime.state).toBe('stopped')
   })

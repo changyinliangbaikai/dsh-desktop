@@ -66,16 +66,29 @@ try {
     }
   }
   const url = await runtime.start()
-  const response = await fetch(url, { signal: AbortSignal.timeout(10_000) })
+  const exchange = await fetch(url, {
+    redirect: 'manual',
+    signal: AbortSignal.timeout(10_000),
+  })
+  const setCookie = exchange.headers.get('set-cookie')
+  if (exchange.status !== 303 || exchange.headers.get('location') !== '/' || setCookie === null) {
+    throw new Error('DSH Web did not exchange its launch token for an authenticated cookie.')
+  }
+  const cookie = setCookie.split(';', 1)[0]
+  const response = await fetch(new URL('/', url), {
+    headers: { cookie },
+    signal: AbortSignal.timeout(10_000),
+  })
   const html = await response.text()
   if (!response.ok) throw new Error('DSH Web returned HTTP ' + String(response.status) + '.')
   const expectedTitle = staged ? '<title>DeepSeek Harness</title>' : '<title>DSH Local Build</title>'
   if (!html.includes('<div id="root"></div>') || !html.includes(expectedTitle)) {
     throw new Error('DSH Web response did not contain the official application shell.')
   }
-  console.log('real-dsh-smoke: ready ' + url + ', HTTP ' + String(response.status))
+  console.log('real-dsh-smoke: ready ' + new URL(url).origin + ', HTTP ' + String(response.status))
   if (staged) {
     const installerResponse = await fetch(new URL('/dsh-offline-plugin-installer/session.json', url), {
+      headers: { cookie },
       signal: AbortSignal.timeout(10_000),
     })
     const installerSession = await installerResponse.json()

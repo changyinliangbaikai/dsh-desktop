@@ -17,7 +17,7 @@ flowchart LR
   UI <--> DSH
 ~~~
 
-Electron owns the window and process lifecycle. The pinned Node executable runs the official DSH CLI with the web profile. BrowserWindow loads only the validated loopback origin announced by DSH.
+Electron owns the window and process lifecycle. The pinned Node executable runs the official DSH CLI with the web profile. BrowserWindow loads only the validated authenticated loopback URL announced by DSH; the bootstrap token is retained for the initial navigation but redacted from lifecycle diagnostics.
 
 The packaged runtime is generated from a reviewed lock under
 `packaging/runtime/`. Its closure contains the official npm release, Node

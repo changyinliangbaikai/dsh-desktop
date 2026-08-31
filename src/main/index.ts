@@ -159,8 +159,9 @@ async function bootstrap(): Promise<void> {
         launch,
       })
     }
-    dshOrigin = await runtime.start()
-    await window.loadURL(dshOrigin)
+    const readyUrl = await runtime.start()
+    dshOrigin = new URL(readyUrl).origin
+    await window.loadURL(readyUrl)
   } catch (error) {
     await loadStatus(window, {
       title: 'Harness Desktop',

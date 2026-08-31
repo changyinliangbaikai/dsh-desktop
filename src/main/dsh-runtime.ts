@@ -2,7 +2,7 @@ import { spawn, type ChildProcessByStdio } from 'node:child_process'
 import { mkdirSync } from 'node:fs'
 import type { Readable } from 'node:stream'
 import { signalProcessTree } from './process-tree.js'
-import { parseDshReadyUrl } from './ready-url.js'
+import { parseDshReadyUrl, redactDshReadyLine } from './ready-url.js'
 import type { DshLaunchSpec } from './runtime-config.js'
 
 export type DshRuntimeState = 'idle' | 'starting' | 'ready' | 'stopping' | 'stopped'
@@ -75,8 +75,8 @@ export class DshRuntime {
   }
 
   /**
-   * Start DSH and wait for its validated Web origin.
-   * @returns The trusted loopback origin.
+   * Start DSH and wait for its validated authenticated Web URL.
+   * @returns The trusted loopback bootstrap URL, including its one-time token.
    */
   async start(): Promise<string> {
     if (this.#state !== 'idle' && this.#state !== 'stopped') {
@@ -122,7 +122,7 @@ export class DshRuntime {
         else stderrBuffer = remainder
 
         for (const line of lines) {
-          this.#recordOutput(stream, line)
+          this.#recordOutput(stream, redactDshReadyLine(line))
           if (stream !== 'stdout' || settled) continue
           try {
             const readyUrl = parseDshReadyUrl(line)
