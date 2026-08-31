@@ -19,6 +19,9 @@ Before the official Web Profile starts, the shell verifies that archive's
 SHA-512 integrity and idempotently seeds it through the official `dsh plugin`
 CLI. The resulting **Settings → Plugins → Offline install** page remains
 plugin-owned; Desktop owns only immutable staging and first-run installation.
+The independently buildable plugin source lives at
+`plugins/dsh-offline-plugin-installer/` in this repository, and the Desktop
+gate must reproduce the committed archive byte-for-byte from that source.
 
 ## Pinned upstream
 
@@ -41,6 +44,7 @@ corepack pnpm@11.7.0 run build
 Then install and start the desktop shell:
 
 ~~~sh
+npm --prefix plugins/dsh-offline-plugin-installer ci
 corepack pnpm@11.7.0 install
 corepack pnpm@11.7.0 run check
 corepack pnpm@11.7.0 run start
@@ -68,8 +72,11 @@ pnpm run pack:win
 
 The repository carries the exact reviewed offline-installer archive under
 `packaging/plugins/`, so the default GitHub and local release paths are
-self-contained. `DSH_DESKTOP_PLUGIN_ARCHIVE_DIR` remains an optional explicit
-override for testing another reviewed archive with the same manifest integrity.
+self-contained. `pnpm run check` and `pnpm run stage:runtime` rebuild the
+in-tree plugin and require its npm tarball to be byte-for-byte identical to
+that archive before packaging continues. `DSH_DESKTOP_PLUGIN_ARCHIVE_DIR`
+remains an optional explicit override for testing another reviewed archive
+with the same manifest integrity.
 
 The NSIS artifact is written under `release/`. The `Windows package` workflow
 runs the same sequence and uploads the installer. A tag matching the package

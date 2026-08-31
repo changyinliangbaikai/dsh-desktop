@@ -1,0 +1,26 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`keyless user-visible offline installer copy > matches the reviewed bilingual safety and restart contract 1`] = `
+{
+  "dependency": {
+    "en": "If the plugin declares runtime dependencies, they must already exist in the desktop runtime’s offline pnpm store.",
+    "zh": "若插件声明运行时依赖，这些依赖也必须已存在于桌面运行时的离线 pnpm store 中。",
+  },
+  "security": {
+    "en": "Network access and npm lifecycle scripts are disabled. Plugin code loads only after the Profile restarts.",
+    "zh": "安装过程禁止网络访问和 npm 生命周期脚本；插件代码只会在重启 Profile 后加载。",
+  },
+  "success": {
+    "en": "Restart the DSH Profile. In Harness Desktop, quit and reopen the application.",
+    "zh": "请重启 DSH Profile；在桌面壳中请退出并重新打开应用。",
+  },
+  "tab": {
+    "en": "Offline install",
+    "zh": "离线安装",
+  },
+  "title": {
+    "en": "Install an offline plugin package",
+    "zh": "安装离线插件包",
+  },
+}
+`;

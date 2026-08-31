@@ -1,0 +1,17 @@
+- insert:
+    - id: dsh-offline-plugin-installer
+      name: dsh-offline-plugin-installer
+      config:
+        profile: web
+        archiveStoreDir: .dsh-offline-plugin-packages
+        cliEntryPath: ''
+        maxUploadBytes: 268435456
+        maxExpandedBytes: 536870912
+        maxArchiveEntries: 10000
+        maxStoredPackages: 128
+        maxStoredBytes: 2147483648
+        installTimeoutMs: 300000
+        maxCliOutputBytes: 65536
+        expectedHarnessVersion: 0.1.2-alpha.2
+        expectedCordisVersion: 4.0.2
+        allowedPackagePrefixes: []

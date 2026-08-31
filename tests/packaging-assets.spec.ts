@@ -48,6 +48,13 @@ describe('packaging assets', () => {
   it('commits the exact reviewed offline installer archive used by CI staging', () => {
     const manifest = JSON.parse(readFileSync(join(projectRoot, 'packaging', 'runtime-manifest.json'), 'utf8'))
     const plugin = manifest.embeddedPlugins[0]
+    const sourceRoot = join(projectRoot, 'plugins', 'dsh-offline-plugin-installer')
+    const sourceManifest = JSON.parse(readFileSync(join(sourceRoot, 'package.json'), 'utf8'))
+    const sourceLock = JSON.parse(readFileSync(join(sourceRoot, 'package-lock.json'), 'utf8'))
+    expect(sourceManifest).toMatchObject({ name: plugin.name, version: plugin.version })
+    expect(sourceLock).toMatchObject({ name: plugin.name, version: plugin.version })
+    expect(sourceLock.packages['']).toMatchObject({ name: plugin.name, version: plugin.version })
+    expect(existsSync(join(sourceRoot, '.git'))).toBe(false)
     const archivePath = join(projectRoot, 'packaging', 'plugins', plugin.archive)
     expect(existsSync(archivePath)).toBe(true)
     expect(statSync(archivePath).isFile()).toBe(true)

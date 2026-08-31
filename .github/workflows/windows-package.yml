@@ -45,6 +45,9 @@ jobs:
       - name: Install desktop dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Install in-tree offline plugin dependencies
+        run: pnpm run offline-plugin:install
+
       - name: Run shell gates
         run: pnpm run check
 

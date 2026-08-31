@@ -7,10 +7,12 @@ flowchart LR
   Main["Electron Main"]
   Runtime["Pinned Node.js"]
   DSH["Official dsh web"]
+  PluginSource["In-tree offline-installer source"]
   Seed["Reviewed offline-installer archive"]
   UI["Official React UI"]
   Main --> Runtime
   Main -->|verify + official dsh plugin add| Seed
+  PluginSource -->|reproducible npm pack| Seed
   Seed --> DSH
   Runtime --> DSH
   Main --> UI
@@ -24,7 +26,9 @@ The packaged runtime is generated from a reviewed lock under
 24.19.0 copied from the target build runner, and pnpm 11.7.0. The provenance
 manifest pins the upstream tag, commit, version, and npm integrity.
 It also pins every embedded plugin archive by name, version, target Profile,
-filename, and SHA-512 integrity. Staging copies only matching reviewed inputs.
+filename, and SHA-512 integrity. The offline installer remains a standalone DSH
+package under `plugins/`; Desktop checks rebuild its npm archive and require an
+exact byte match before staging copies the reviewed input.
 
 Browser-host permissions are granted only when Electron identifies both the
 requesting WebContents and requesting origin as that validated DSH surface.
@@ -63,10 +67,14 @@ node <dsh-entry> web --no-open --host 127.0.0.1 --port 0
 It waits for:
 
 ~~~text
-dsh web: http://127.0.0.1:<assigned-port>
+dsh web: http://127.0.0.1:<assigned-port>/?token=<43-character-base64url-token>
 ~~~
 
-Only an HTTP URL with hostname 127.0.0.1, an explicit non-zero port, root path, and no credentials, query, or fragment is accepted.
+Only an HTTP URL with hostname 127.0.0.1, an explicit non-zero port, root path,
+no user-info or fragment, and exactly one 43-character base64url `token` query
+is accepted. The full URL is used once for renderer bootstrap; only its origin
+is retained for later navigation and permission policy, and diagnostics redact
+the token.
 
 ## Ownership
 
@@ -78,6 +86,8 @@ Desktop owns:
 - loopback URL validation and navigation handling;
 - runtime staging, Windows installation, and updates.
 - integrity verification and first-run seeding of reviewed plugin archives.
+- source, package lock, reproducible archive, and release orchestration for the
+  private in-tree offline-installer DSH package.
 
 DeepSeek Harness owns:
 
@@ -87,7 +97,7 @@ DeepSeek Harness owns:
 
 No desktop transport or alternative Tool Runtime is introduced.
 Archive inspection, upload policy, the Web page, and later offline installs are
-owned by `dsh-offline-plugin-installer`, not by Electron.
+owned by the in-tree `dsh-offline-plugin-installer` package, not by Electron.
 
 Shutdown is process-tree scoped. POSIX builds signal the detached DSH process
 group; Windows builds use `taskkill /T`, escalating to `/F` after the deadline.

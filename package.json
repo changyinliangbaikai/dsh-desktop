@@ -1,6 +1,6 @@
 {
   "name": "dsh-windows-desktop",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "private": true,
   "type": "module",
   "description": "Windows desktop shell for the official DeepSeek Harness Web profile.",
@@ -20,8 +20,11 @@
     "test:coverage": "vitest run --coverage",
     "test:real-dsh": "pnpm run build && node scripts/real-dsh-smoke.mjs",
     "test:staged-runtime": "pnpm run build && node scripts/real-dsh-smoke.mjs --staged",
-    "check": "pnpm run typecheck && pnpm run lint && pnpm run test:coverage && pnpm run build",
-    "stage:runtime": "node scripts/stage-runtime.mjs",
+    "offline-plugin:install": "npm --prefix plugins/dsh-offline-plugin-installer ci",
+    "offline-plugin:check": "npm --prefix plugins/dsh-offline-plugin-installer run check",
+    "offline-plugin:verify": "node scripts/verify-embedded-plugin-source.mjs",
+    "check": "pnpm run offline-plugin:check && pnpm run offline-plugin:verify && pnpm run typecheck && pnpm run lint && pnpm run test:coverage && pnpm run build",
+    "stage:runtime": "pnpm run offline-plugin:verify && node scripts/stage-runtime.mjs",
     "verify:staged-runtime": "node scripts/verify-staged-runtime.mjs",
     "pack:dir": "pnpm run verify:staged-runtime && pnpm run build && electron-builder --dir",
     "pack:win": "pnpm run verify:staged-runtime && pnpm run build && electron-builder --win nsis --x64 --publish never"

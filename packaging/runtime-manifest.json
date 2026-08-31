@@ -11,9 +11,9 @@
   "embeddedPlugins": [
     {
       "name": "dsh-offline-plugin-installer",
-      "version": "0.1.1",
-      "archive": "dsh-offline-plugin-installer-0.1.1.tgz",
-      "integrity": "sha512-ioTtnJWlwhJkzwBGFbUr9wAYDot4u0Z3ss1jAlTkg7a4PMIOnAIQ4Q523BLsyV57EZuY0CUJ1vViZRpoIUU9aA==",
+      "version": "0.1.2",
+      "archive": "dsh-offline-plugin-installer-0.1.2.tgz",
+      "integrity": "sha512-aHZsGS0SsAZASlIZnmnlM+cceiTLdkMR1eJ26jKmmvKzN3a8exjqMC2VD7ABODSq4jqxMdSFUMxwB3uNHePKiw==",
       "profile": "web"
     }
   ]

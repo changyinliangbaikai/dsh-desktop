@@ -20,14 +20,10 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Type-check
-        run: pnpm run typecheck
-      - name: Lint
-        run: pnpm run lint
-      - name: Test with coverage
-        run: pnpm run test:coverage
-      - name: Build
-        run: pnpm run build
+      - name: Install in-tree offline plugin dependencies
+        run: pnpm run offline-plugin:install
+      - name: Run repository gate
+        run: pnpm run check
 
   windows-checks:
     runs-on: windows-2022
@@ -44,11 +40,7 @@ jobs:
           cache: pnpm
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-      - name: Type-check
-        run: pnpm run typecheck
-      - name: Lint
-        run: pnpm run lint
-      - name: Test with coverage
-        run: pnpm run test:coverage
-      - name: Build
-        run: pnpm run build
+      - name: Install in-tree offline plugin dependencies
+        run: pnpm run offline-plugin:install
+      - name: Run repository gate
+        run: pnpm run check
