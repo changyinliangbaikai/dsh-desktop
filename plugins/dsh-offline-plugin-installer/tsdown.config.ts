@@ -1,18 +1,33 @@
 import { existsSync } from 'node:fs'
 import { readFile } from 'node:fs/promises'
-import { dirname, resolve } from 'node:path'
+import { dirname, isAbsolute, relative, resolve, sep } from 'node:path'
 import { defineConfig, type UserConfig } from 'tsdown'
 
 const PACKAGE_ID = 'dsh-offline-plugin-installer'
 const INLINE_CSS_PREFIX = '\0dsh-offline-plugin-installer-css:'
 const INLINE_CSS_SUFFIX = '.mjs'
+const inlineCssAssets = new Map<string, string>()
+
+function isPathInside(root: string, candidate: string): boolean {
+  const path = relative(root, candidate)
+  return path !== '' && path !== '..' && !path.startsWith(`..${sep}`) && !isAbsolute(path)
+}
 
 function sourceAssetPath(source: string, importer: string): string {
   const emitted = resolve(dirname(importer), source)
   if (existsSync(emitted)) return emitted
-  const marker = `${resolve('lib/types')}/`
-  if (!emitted.startsWith(marker)) return emitted
-  return resolve('src', emitted.slice(marker.length))
+  const emittedTypesRoot = resolve('lib/types')
+  if (!isPathInside(emittedTypesRoot, emitted)) return emitted
+  return resolve('src', relative(emittedTypesRoot, emitted))
+}
+
+function inlineCssId(path: string): string {
+  const packageRoot = resolve('.')
+  if (!isPathInside(packageRoot, path)) {
+    throw new Error(`Inline CSS asset escaped the package root: ${path}`)
+  }
+  const portablePath = relative(packageRoot, path).split(sep).join('/')
+  return INLINE_CSS_PREFIX + portablePath + INLINE_CSS_SUFFIX
 }
 
 const hostExternals = [
@@ -60,11 +75,13 @@ const clientBundle: UserConfig = {
       if (!source.endsWith('.css?inline')) return null
       const stylesheet = source.slice(0, -'?inline'.length)
       const path = importer === undefined ? stylesheet : sourceAssetPath(stylesheet, importer)
-      return INLINE_CSS_PREFIX + path + INLINE_CSS_SUFFIX
+      const id = inlineCssId(resolve(path))
+      inlineCssAssets.set(id, resolve(path))
+      return id
     },
     async load(id: string) {
-      if (!id.startsWith(INLINE_CSS_PREFIX)) return null
-      const path = id.slice(INLINE_CSS_PREFIX.length, -INLINE_CSS_SUFFIX.length)
+      const path = inlineCssAssets.get(id)
+      if (path === undefined) return null
       this.addWatchFile(path)
       return `export default ${JSON.stringify(await readFile(path, 'utf8'))};`
     },

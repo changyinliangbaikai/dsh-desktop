@@ -1,6 +1,6 @@
 import { spawnSync } from 'node:child_process'
 import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs'
-import { join, relative } from 'node:path'
+import { join, relative, resolve } from 'node:path'
 import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
@@ -66,6 +66,8 @@ describe('DSH offline installer package structure', () => {
     expect(client).toContain('id: "dsh-offline-plugin-installer"')
     expect(client).toContain('data-plugin-css')
     expect(client).toContain('.dopi-page')
+    expect(client).toContain('dsh-offline-plugin-installer-css:src/client/styles.css.mjs')
+    expect(client).not.toContain(resolve(projectRoot))
     expect(client).toContain('return module.exports;')
     const requires = [...client.matchAll(/require\((['"])(.*?)\1\)/gu)].map(match => match[2]).sort()
     expect(requires).toEqual(['react', 'react/jsx-runtime'])
