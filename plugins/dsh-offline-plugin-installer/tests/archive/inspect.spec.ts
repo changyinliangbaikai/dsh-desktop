@@ -10,7 +10,7 @@ const POLICY: ArchivePolicy = {
   maxUploadBytes: 1024 * 1024,
   maxExpandedBytes: 2 * 1024 * 1024,
   maxArchiveEntries: 100,
-  expectedHarnessVersion: '0.1.2-alpha.2',
+  expectedHarnessVersion: '0.1.2-rc.1',
   expectedCordisVersion: '4.0.2',
   allowedPackagePrefixes: [],
 }
@@ -96,7 +96,7 @@ describe('inspectArchive', () => {
       manifest: fixtureManifest({
         peerDependencies: {
           '@deepseek-ai/cordis': '4.0.0',
-          '@deepseek-ai/dsh-host-webserver': '0.1.2-alpha.2',
+          '@deepseek-ai/dsh-host-webserver': '0.1.2-rc.1',
         },
       }),
     })

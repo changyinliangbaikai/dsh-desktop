@@ -23,11 +23,17 @@ The independently buildable plugin source lives at
 `plugins/dsh-offline-plugin-installer/` in this repository, and the Desktop
 gate must reproduce the committed archive byte-for-byte from that source.
 
+## Harness 0.1.2-rc.1 compatibility
+
+Desktop `0.2.3` replaces the embedded `0.1.2-alpha.2` runtime with the exact `0.1.2-rc.1` release and seeds offline installer `0.1.3`. Existing Profile data and installer archive metadata need no migration.
+
+This upstream transition is intentionally breaking for old plugin archives: packages that still declare exact `0.1.2-alpha.2` DSH peers are rejected by the new runtime and offline installer. Rebuild or upgrade those plugins against `0.1.2-rc.1` before installing them. The Electron lifecycle, ready-URL contract, Profile location, and bootstrap flow are unchanged.
+
 ## Pinned upstream
 
-- DeepSeek Harness release: 0.1.2-alpha.2
-- Git tag: dsh-v0.1.2-alpha.2
-- Commit: 0a53fb55bea101816fa226bb964ae2bed71c343b
+- DeepSeek Harness release: 0.1.2-rc.1
+- Git tag: dsh-v0.1.2-rc.1
+- Commit: a66e4702047846cdaa10c66c9d3df3951f5ea70d
 - Node: ^22.19.0 or >=24.0.0
 - pnpm: 11.7.0
 

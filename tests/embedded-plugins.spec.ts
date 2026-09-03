@@ -7,8 +7,8 @@ import { seedEmbeddedProfilePlugins } from '../src/main/embedded-plugins.js'
 import type { DshLaunchSpec } from '../src/main/runtime-config.js'
 
 const PACKAGE_NAME = 'dsh-offline-plugin-installer'
-const VERSION = '0.1.2'
-const ARCHIVE = 'dsh-offline-plugin-installer-0.1.2.tgz'
+const VERSION = '0.1.3'
+const ARCHIVE = 'dsh-offline-plugin-installer-0.1.3.tgz'
 
 let root: string
 let runtimeRoot: string

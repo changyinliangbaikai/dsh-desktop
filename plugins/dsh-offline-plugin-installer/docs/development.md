@@ -25,7 +25,7 @@ Build and pack the plugin, then use the exact archive rather than a source link:
 ```sh
 npm run check
 npm pack
-dsh plugin --profile web add ./dsh-offline-plugin-installer-0.1.2.tgz
+dsh plugin --profile web add ./dsh-offline-plugin-installer-0.1.3.tgz
 ```
 
 Run against a disposable `DSH_HOME`. Confirm resolved config contains the package row and the Web boot manifest includes its client. Open Settings → Plugins → Offline install, install a separate known-good fixture package, restart the Profile, and verify the fixture's Host/Web surfaces. Also exercise a missing offline dependency, bad peer version, oversized archive, cancellation, timeout, and clean shutdown.

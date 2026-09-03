@@ -12,6 +12,6 @@
         maxStoredBytes: 2147483648
         installTimeoutMs: 300000
         maxCliOutputBytes: 65536
-        expectedHarnessVersion: 0.1.2-alpha.2
+        expectedHarnessVersion: 0.1.2-rc.1
         expectedCordisVersion: 4.0.2
         allowedPackagePrefixes: []

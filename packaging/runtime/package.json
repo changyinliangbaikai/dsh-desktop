@@ -4,7 +4,7 @@
   "private": true,
   "description": "Locked runtime closure embedded in Harness Desktop.",
   "dependencies": {
-    "@deepseek-ai/dsh": "0.1.2-alpha.2",
+    "@deepseek-ai/dsh": "0.1.2-rc.1",
     "pnpm": "11.7.0",
     "react": "18.3.1",
     "react-dom": "18.3.1"
