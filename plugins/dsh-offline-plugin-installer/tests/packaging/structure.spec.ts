@@ -5,7 +5,6 @@ import { fileURLToPath, pathToFileURL } from 'node:url'
 import { describe, expect, it } from 'vitest'
 
 const projectRoot = fileURLToPath(new URL('../../', import.meta.url))
-const npmCommand = process.platform === 'win32' ? 'npm.cmd' : 'npm'
 
 function readJson(path: string): Record<string, unknown> {
   return JSON.parse(readFileSync(path, 'utf8')) as Record<string, unknown>
@@ -75,9 +74,10 @@ describe('DSH offline installer package structure', () => {
   })
 
   it('ships every declared runtime surface in the packed tarball', () => {
-    const result = spawnSync(npmCommand, ['pack', '--json', '--dry-run', '--ignore-scripts'], {
+    const result = spawnSync('npm', ['pack', '--json', '--dry-run', '--ignore-scripts'], {
       cwd: projectRoot,
       encoding: 'utf8',
+      shell: process.platform === 'win32',
     })
     expect(result.status, result.stderr || result.stdout).toBe(0)
     const report = JSON.parse(result.stdout) as { files: { path: string }[] }[]
