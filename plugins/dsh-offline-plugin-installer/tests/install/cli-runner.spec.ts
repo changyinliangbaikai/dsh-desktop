@@ -53,7 +53,9 @@ describe('DshCliRunner', () => {
     const pending = active.add('/profile/archive.tgz', new AbortController().signal)
     await new Promise(resolve => { setTimeout(resolve, 20) })
     await active.dispose()
-    await expect(pending).resolves.toMatchObject({ exitCode: null })
+    const disposed = await pending
+    expect(disposed).toMatchObject({ timedOut: false })
+    expect(disposed.exitCode).not.toBe(0)
     expect(resolveCliEntryPath(fixture)).toBe(fixture)
     expect(() => resolveCliEntryPath('/definitely/missing/dsh-cli.js')).toThrow()
   })

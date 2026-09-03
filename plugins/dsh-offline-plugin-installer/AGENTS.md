@@ -24,6 +24,7 @@ This directory is the independently buildable `dsh-offline-plugin-installer` pac
 - Package built Host/Web entries, declarations, source maps, `cordis.patch.yml`, README, license, and security/development/verification documentation in the Desktop-reviewed archive.
 - Keep this package independently versioned with its own `package.json` and npm lock. Do not consume Desktop dependencies, import Electron code, or rely on dependency hoisting.
 - A Desktop release may embed this package only when the committed archive is byte-for-byte reproducible from this source and its SHA-512 matches the Desktop runtime manifest.
+- Keep generated bundle ids and annotations relative and separator-neutral so the reviewed archive remains byte-identical across supported build hosts; never embed the absolute checkout path.
 - Every behavior change updates tests and user-facing documentation. Run focused tests while developing and `npm run check` before handoff.
 - `npm run check` must cover type checking, behavior, coverage, built entry points, packed contents, and the keyless user-visible snapshot.
 - Acceptance uses the packed archive in a fresh isolated DSH Profile. Separate source, packed-package, assembled Host/Web, desktop staging, and manual restart evidence.

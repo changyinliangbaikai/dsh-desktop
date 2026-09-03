@@ -18,6 +18,7 @@ This repository is the thin Windows desktop shell for the official DeepSeek Harn
 - Treat the official Web ready URL as credential-bearing input: validate the exact loopback/authentication shape, retain it for the first navigation, and redact credentials before recording lifecycle output or diagnostics.
 - Re-resolve the embedded runtime from a fresh lock graph when the Harness version changes, pin shared runtime singletons required by published peers, and require `pnpm peers check` plus a real staged-runtime startup before accepting the closure.
 - Keep the in-tree plugin on its own npm lock and public DSH/Cordis seams. Desktop code must not import its source or depend on its `node_modules`; the committed bootstrap archive must reproduce byte-for-byte from that source before checks or runtime staging pass.
+- Keep the in-tree plugin build path- and platform-independent. Generated bundles, virtual module ids, source annotations, and packed files must not contain an absolute checkout path or host-only path separator.
 - Use maintained dependencies only when they remove meaningful owned code.
 - Add behavior tests before or with implementation.
 - Every bug fix adds a regression test.
