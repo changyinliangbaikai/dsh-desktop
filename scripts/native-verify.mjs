@@ -6,6 +6,7 @@ import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { readCordisConfiguration } from '../dist/native/intranet.js';
+import { archivePath } from '../dist/native/archive.js';
 import { app, artifacts, pin, release, repository, target, verifyUpstream } from './native-common.mjs';
 
 verifyUpstream();
@@ -14,7 +15,7 @@ const requireBuilder = createRequire(requireApp.resolve('app-builder-lib/package
 const asar = requireBuilder('@electron/asar');
 const unpacked = join(release, 'win-unpacked');
 const archive = join(unpacked, 'resources/app.asar');
-const read = file => asar.extractFile(archive, file);
+const read = file => asar.extractFile(archive, archivePath(file));
 const metadata = JSON.parse(read('package.json'));
 assert.equal(metadata.version, pin.version);
 assert.equal(metadata.dshIntranetBuild.upstream, pin.commit);

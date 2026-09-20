@@ -84,8 +84,29 @@ jobs:
         run: pnpm --dir ../.artifacts/native-desktop/upstream install --frozen-lockfile
       - name: Check upstream peer dependencies
         run: pnpm --dir ../.artifacts/native-desktop/upstream peers check
+      - name: Restore exact native preparation
+        id: native-cache
+        uses: actions/cache/restore@v4
+        with:
+          key: native-windows-2022-node24.19-pnpm11.7-v1-${{ steps.upstream.outputs.commit }}
+          path: |
+            .artifacts/native-desktop/upstream/apps/desktop/lib
+            .artifacts/native-desktop/upstream/apps/desktop/.desktop-build/targets/win-x64/dsh
+            .artifacts/native-desktop/upstream/apps/desktop/.desktop-build/targets/win-x64/runtime
+            .artifacts/native-desktop/upstream/apps/desktop/.desktop-build/targets/win-x64/electron
       - name: Prepare native desktop and smoke its runtime
+        if: steps.native-cache.outputs.cache-hit != 'true'
         run: pnpm run native:stage
+      - name: Cache verified unmodified native preparation
+        if: steps.native-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          key: ${{ steps.native-cache.outputs.cache-primary-key }}
+          path: |
+            .artifacts/native-desktop/upstream/apps/desktop/lib
+            .artifacts/native-desktop/upstream/apps/desktop/.desktop-build/targets/win-x64/dsh
+            .artifacts/native-desktop/upstream/apps/desktop/.desktop-build/targets/win-x64/runtime
+            .artifacts/native-desktop/upstream/apps/desktop/.desktop-build/targets/win-x64/electron
       - name: Apply and inventory intranet configuration
         run: pnpm run native:overlay
       - name: Package native unsigned Windows installer

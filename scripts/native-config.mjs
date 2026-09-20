@@ -1,7 +1,8 @@
 /** Preserve native Electron/NSIS behavior; select downstream deployment metadata. */
 import { pathToFileURL } from 'node:url';
 import { join } from 'node:path';
-import { app, pin, release } from './native-common.mjs';
+import { app, pin, release, target } from './native-common.mjs';
+import { preserveNativeRuntime } from '../dist/native/archive.js';
 
 const { createElectronBuilderConfig } = await import(pathToFileURL(join(app, 'scripts/electron-builder-config.mjs')).href);
 const configuration = createElectronBuilderConfig({
@@ -20,4 +21,9 @@ configuration.extraMetadata.dshIntranetBuild = { upstream: pin.commit, webSearch
 configuration.productName = 'Harness Desktop Intranet';
 configuration.artifactName = 'Harness-Desktop-Intranet-${version}-${arch}.${ext}';
 configuration.directories.output = release;
+const afterPack = configuration.afterPack;
+configuration.afterPack = async context => {
+  await afterPack(context);
+  await preserveNativeRuntime(join(context.appOutDir, 'resources/app.asar'), join(target, 'dsh'));
+};
 export default configuration;

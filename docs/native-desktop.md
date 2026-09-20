@@ -25,6 +25,13 @@ and omits the optional mandatory-policy package metadata. No auto-update feed is
 generated. Upstream source, npm tarballs and historical acceptance reports remain
 unchanged.
 
+Electron-builder ordinarily removes package metadata from dependency manifests.
+An `afterPack` hook restores the sealed DSH subtree through the public ASAR API,
+retaining native unpack flags and all non-DSH application bytes. This keeps the
+final runtime byte-identical to its inventory, including package scripts,
+licences and configuration. Missing native files stop packaging. The verifier
+normalizes portable inventory paths before invoking the Windows ASAR reader.
+
 Final verification compares ASAR's main.js against the exact native build, checks
 the overlay hashes, and launches the final application executable in Node mode
 against its ASAR runtime with an isolated DSH_HOME. The real Host serves HTML and
