@@ -8,6 +8,12 @@ importers:
 
   .:
     devDependencies:
+      '@types/js-yaml':
+        specifier: 4.0.9
+        version: 4.0.9
+      js-yaml:
+        specifier: 4.2.0
+        version: 4.2.0
       '@types/node':
         specifier: ^22.20.0
         version: 22.20.1
@@ -31,6 +37,14 @@ importers:
         version: 4.1.11(@types/node@22.20.1)(@vitest/coverage-v8@4.1.11)(vite@8.2.2(@types/node@22.20.1)(jiti@2.7.0))
 
 packages:
+
+  '@types/js-yaml@4.0.9':
+    resolution: {integrity: sha512-k4MGaQl5TGo/iipqb2UDG2UwjXziSWkh0uysQelTlJpX1qGlpUZYm8PnO4DxG1qBomtJUdYJ6qR6xdIah10JLg==}
+
+  js-yaml@4.2.0:
+    resolution: {integrity: sha512-ePWsvanv0DWuDRsW8dnt+R4jQ31SCRCQ7hhNcPXZPsoBZiemuZNYGf7adZdqX2D86j6rvKp3RpCxVTSb8WQlOw==}
+    hasBin: true
+
 
   '@babel/helper-string-parser@7.29.7':
     resolution: {integrity: sha512-Pb5ijPrZ89GDH8223L4UP8i6QApWxs04RbPQJTeWDV0/keR2E36MeKnyr6LYmUUvqRRI+Iv87SuF1W6ErINzYw==}
@@ -1650,6 +1664,13 @@ packages:
     engines: {node: '>=10'}
 
 snapshots:
+
+  '@types/js-yaml@4.0.9': {}
+
+  js-yaml@4.2.0:
+    dependencies:
+      argparse: 2.0.1
+
 
   '@babel/helper-string-parser@7.29.7': {}
 

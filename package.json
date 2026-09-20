@@ -1,9 +1,9 @@
 {
   "name": "dsh-windows-desktop",
-  "version": "0.2.3",
+  "version": "0.3.0-native.1",
   "private": true,
   "type": "module",
-  "description": "Windows desktop shell for the official DeepSeek Harness Web profile.",
+  "description": "Pinned native DeepSeek Harness desktop builds with intranet search defaults",
   "main": "dist/main/index.js",
   "engines": {
     "node": "^22.19.0 || >=24.0.0"
@@ -27,13 +27,19 @@
     "stage:runtime": "pnpm run offline-plugin:verify && node scripts/stage-runtime.mjs",
     "verify:staged-runtime": "node scripts/verify-staged-runtime.mjs",
     "pack:dir": "pnpm run verify:staged-runtime && pnpm run build && electron-builder --dir",
-    "pack:win": "pnpm run verify:staged-runtime && pnpm run build && electron-builder --win nsis --x64 --publish never"
+    "pack:win": "node scripts/native-pack.mjs",
+    "native:stage": "node scripts/native-stage.mjs",
+    "native:overlay": "node scripts/native-overlay.mjs",
+    "pack:win:legacy": "pnpm run verify:staged-runtime && pnpm run build && electron-builder --win nsis --x64 --publish never",
+    "native:verify": "node scripts/native-verify.mjs"
   },
   "devDependencies": {
+    "@types/js-yaml": "4.0.9",
     "@types/node": "^22.20.0",
     "@vitest/coverage-v8": "^4.1.8",
     "electron": "43.4.1",
     "electron-builder": "26.15.3",
+    "js-yaml": "4.2.0",
     "oxlint": "1.76.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.8"
