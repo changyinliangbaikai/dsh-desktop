@@ -33,7 +33,9 @@ export async function preserveNativeRuntime(archive: string, runtime: string): P
         const path = relative(tree, file);
         // Every runtime file must have been selected by native packaging. A
         // missing file is a separate packaging failure, not a hash exception.
-        if (!unpacked.has(path)) throw new Error(`Native archive omitted ${path.split(sep).join('/')}`);
+        // ASAR omits empty directories; the native inventory contains files
+        // only. Restore those directories without relaxing file checks.
+        if (!entry.isDirectory() && !unpacked.has(path)) throw new Error(`Native archive omitted ${path.split(sep).join('/')}`);
         const selected = unpacked.get(path) === true;
         if (entry.isDirectory()) {
           streams.push({ path, type: 'directory', unpacked: selected });

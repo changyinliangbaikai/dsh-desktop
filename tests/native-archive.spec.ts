@@ -45,6 +45,8 @@ it('rejects missing runtime resources without replacing the original archive', a
 it('handles archives without unpacked files', async () => {
   const f = fixture();
   await asar.createPackage(f.tree, f.archive);
+  mkdirSync(join(f.runtime, f.module, 'dist-types'));
   await preserveNativeRuntime(f.archive, f.runtime);
   expect(asar.extractFile(f.archive, archivePath('dsh/node_modules/example/package.json'))).toEqual(readFileSync(join(f.runtime, f.module, 'package.json')));
+  expect(asar.statFile(f.archive, archivePath('dsh/node_modules/example/dist-types'))).toMatchObject({ files: {} });
 });
