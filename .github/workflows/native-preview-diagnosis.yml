@@ -33,6 +33,23 @@ jobs:
           7z x $payload.FullName "-o$output/app" -y
           if ($LASTEXITCODE -ne 0) { throw 'Application extraction failed' }
           "PREVIEW_DIAG_ROOT=$output" >> $env:GITHUB_ENV
+      - name: Block application outbound traffic except IPv4 and IPv6 loopback
+        shell: pwsh
+        run: |
+          $application = Join-Path $env:PREVIEW_DIAG_ROOT 'app/Harness Desktop Intranet.exe'
+          $engine = Join-Path $env:PREVIEW_DIAG_ROOT 'app/resources/app/dsh/node_modules/@deepseek-ai/libreoffice-kit-win32-x64/bin/libreoffice-kit.exe'
+          if (!(Test-Path $engine)) { throw 'Native Office engine missing' }
+          $env:ELECTRON_RUN_AS_NODE = '1'
+          & $application -e "fetch('https://example.com/', {signal: AbortSignal.timeout(10000)}).then(r => process.exit(r.ok ? 0 : 2), () => process.exit(3))"
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot establish outbound probe baseline' }
+          Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True
+          $remote = @('0.0.0.0-126.255.255.255', '128.0.0.0-255.255.255.255', '::2-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')
+          New-NetFirewallRule -DisplayName 'DSH preview test app' -Direction Outbound -Action Block -Program $application -RemoteAddress $remote | Out-Null
+          New-NetFirewallRule -DisplayName 'DSH preview test engine' -Direction Outbound -Action Block -Program $engine -RemoteAddress $remote | Out-Null
+          & $application -e "fetch('https://example.com/', {signal: AbortSignal.timeout(4000)}).then(() => process.exit(4), () => process.exit(0))"
+          if ($LASTEXITCODE -ne 0) { throw 'Outbound application traffic was not blocked' }
+          Remove-Item Env:ELECTRON_RUN_AS_NODE
+          Write-Output 'Application outbound probe blocked; loopback remains allowed.'
       - name: Exercise the released native window preview and lifecycle
         shell: pwsh
         run: node scripts/native-preview-diagnosis.mjs
