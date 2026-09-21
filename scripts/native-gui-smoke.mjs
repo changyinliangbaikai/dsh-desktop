@@ -30,6 +30,7 @@ export async function smokeNativeWindow(executable, artifacts) {
     diagnostic = (diagnostic + text.replace(/(?:https?|ws):\/\/[^\s]+/gu, '[redacted URL]')).slice(-12000);
   });
   let socket;
+  let captureFailure;
   let sequence = 0;
   const pending = new Map();
   async function until(probe, message, timeout = 150000) {
@@ -79,7 +80,8 @@ export async function smokeNativeWindow(executable, artifacts) {
         return envelope.result.value;
       };
       await call('officeToPdf/generation', {});
-      const session = await call('session/create', { request: { cwd: ${JSON.stringify(home)} } });
+      const workspace = await call('workspace/create', { request: { path: ${JSON.stringify(home)} } });
+      const session = await call('session/create', { request: { workspaceId: workspace.workspace.workspaceId } });
       await call('session/rename', { request: { sessionId: session.sessionId, title: 'Office preview smoke' } });
       const pdf = await call('officeToPdf/render', { workspaceFileScopeId: session.sessionId, path: 'preview.docx', priority: 'foreground' });
       return { bytes: pdf.bytes, header: atob(pdf.data).slice(0, 5) };
@@ -88,6 +90,10 @@ export async function smokeNativeWindow(executable, artifacts) {
     assert.equal(preview.header, '%PDF-');
     assert.ok(preview.bytes > 100);
     const inWindow = code => evaluate(`${primary}.webContents.executeJavaScript(${JSON.stringify(code)})`);
+    captureFailure = async () => {
+      const state = await inWindow(`({ text: document.body.innerText.slice(0, 12000), rows: [...document.querySelectorAll('[role="treeitem"]')].map(e => e.textContent) })`);
+      console.log('NATIVE_PREVIEW_UI_DIAG ' + JSON.stringify(state));
+    };
     await until(() => inWindow(`Boolean([...document.querySelectorAll('[role="treeitem"]')].find(e => e.textContent.includes('Office preview smoke')))`), 'preview session in sidebar', 20000);
     await inWindow(`[...document.querySelectorAll('[role="treeitem"]')].find(e => e.textContent.includes('Office preview smoke')).click(); true`);
     await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-expand]'))`), 'right sidebar control', 10000);
@@ -116,6 +122,9 @@ export async function smokeNativeWindow(executable, artifacts) {
     })]).finally(() => clearTimeout(quitTimer));
     assert.equal(outcome.code, 0, diagnostic);
     return { closeHides: true, nativeRestore: true, nativeQuit: true, officePreviewRemote: preview, officePreviewCanvas: true, manualTrayClick: 'pending' };
+  } catch (error) {
+    await captureFailure?.().catch(() => undefined);
+    throw error;
   } finally {
     socket?.close();
     for (const receiver of pending.values()) clearTimeout(receiver.timer);
