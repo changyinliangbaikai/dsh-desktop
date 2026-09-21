@@ -94,8 +94,10 @@ export async function smokeNativeWindow(executable, artifacts) {
       const state = await inWindow(`({ text: document.body.innerText.slice(0, 12000), rows: [...document.querySelectorAll('[role="treeitem"]')].map(e => e.textContent) })`);
       console.log('NATIVE_PREVIEW_UI_DIAG ' + JSON.stringify(state));
     };
-    await until(() => inWindow(`Boolean([...document.querySelectorAll('[role="treeitem"]')].find(e => e.textContent.includes('Office preview smoke')))`), 'preview session in sidebar', 20000);
-    await inWindow(`[...document.querySelectorAll('[role="treeitem"]')].find(e => e.textContent.includes('Office preview smoke')).click(); true`);
+    // Empty sessions intentionally display the localized New Session label.
+    await inWindow(`[...document.querySelectorAll('button')].find(e => e.textContent === 'Continue')?.click(); true`);
+    await until(() => inWindow(`document.querySelectorAll('[role="treeitem"][aria-selected]').length === 1`), 'single preview session in sidebar', 20000);
+    await inWindow(`document.querySelector('[role="treeitem"][aria-selected]').click(); true`);
     await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-expand]'))`), 'right sidebar control', 10000);
     await inWindow(`document.querySelector('[data-sidebar-right-expand]').click(); true`);
     await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-guide-entry="files"]'))`), 'Files entry', 10000);
