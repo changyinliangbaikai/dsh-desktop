@@ -34,6 +34,7 @@ const hostExternals = [
   '@deepseek-ai/cordis',
   '@deepseek-ai/dsh-app-boot',
   '@deepseek-ai/dsh-host-webserver',
+  '@deepseek-ai/dsh-plugin-manager/operations',
   '@deepseek-ai/schemastery',
 ]
 

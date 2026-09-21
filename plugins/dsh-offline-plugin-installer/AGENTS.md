@@ -4,8 +4,8 @@ This directory is the independently buildable `dsh-offline-plugin-installer` pac
 
 ## Product boundary
 
-- The plugin owns offline archive validation, bounded profile-local archive storage, the explicit Web installation flow, the official DSH CLI subprocess, and its Plugins settings tab.
-- DeepSeek Harness owns profile initialization, package resolution, bundle reconciliation, Cordis loading, and plugin activation. Invoke its published CLI behavior; do not copy its reconciliation implementation.
+- The plugin owns offline archive validation, bounded profile-local archive storage, the explicit Web installation flow, the official DSH package operation, and its Plugins settings tab.
+- DeepSeek Harness owns profile initialization, package resolution, bundle reconciliation, Cordis loading, and plugin activation. Invoke the published operation shared by its CLI (or the CLI itself); do not copy its reconciliation implementation.
 - Harness Desktop may embed and seed this plugin, but it must not reimplement archive validation or the installation page.
 - An installed plugin becomes active only after the Profile restarts. Never claim that a successful package-manager exit hot-loaded code.
 

@@ -1,46 +1,13 @@
 # Native Desktop build boundary
 
-The native pilot is pinned by commit, not a floating upstream branch. Its shell,
-private Host and Harness packages keep upstream's exact shared version. The
-downstream release tag separately versions this repository's orchestration.
+The pinned upstream source and compiled main.js remain unchanged. Dsh-Desktop owns a small Electron entry that registers Windows tray visibility handlers, then imports the original native entry before readiness. It identifies only the main application navigation, excludes dialogs, never intercepts an explicit quit, and delegates Host shutdown to the native before-quit sequence. If tray creation fails, normal window close remains available.
 
-The isolated upstream checkout resides under the parent `.artifacts` directory.
-Both before and after preparation, overlay and packaging, Git HEAD, clean source
-status and native/root versions are checked. Upstream's frozen lockfile and peer
-check precede its own native preparation pipeline (build, npm pack, runtime
-closure assembly, native dependency smoke, isolated Host/Web/plugin smoke).
+The complete runtime is installed under resources/app/dsh on the real filesystem, with ASAR disabled. LibreOfficeKit uses spawn and native filesystem reads; unpacking only EXE/DLL files leaves configuration resources unavailable and does not resolve virtual executable paths. After electron-builder's metadata cleanup, the sealed runtime is restored byte-for-byte. Final verification checks the whole inventory and converts an actual DOCX with the final executable.
 
-Only generated `dsh-base/cordis.patch.yml` and the standard/ptc/cordis
-`agent.cordis.yml` files change. These are deployment configuration resources:
-provider disabled, `tool-web.config.search: false`, all other parsed values
-preserved. YAML comments/formatting are not retained. The overlay checks exact
-row counts and names, validates the entire original runtime inventory, and
-rejects any extra file changes before resealing through the upstream build
-helper. This is not a new DSH plugin and changes no upstream executable code.
+The reviewed offline installer remains an independently buildable npm/DSH package. Its exact archive and extracted contents are staged into the application runtime; a generated Web bundle row selects the desktop Profile. The plugin owns upload validation, storage, authentication and installation. It invokes the public operation shared by dsh plugin, using the active Profile's bundled package-manager invocation with offline and ignore-scripts enforced. No native Host entry is recursively invoked as a CLI.
 
-The native electron-builder factory remains responsible for NSIS, native
-installer helpers, ASAR, runtime resources, hooks and Windows packaging. Our
-configuration chooses a separate application id/product name and unsigned mode,
-and omits the optional mandatory-policy package metadata. No auto-update feed is
-generated. Upstream source, npm tarballs and historical acceptance reports remain
-unchanged.
+Runtime deltas are limited to four search configuration resources, the Web bundle's installer row and declared dependency metadata, and the reviewed package files/archive. Native staging verifies the original inventory, applies these allowlisted changes and reseals it. The plugin's exact peers must match runtime packages. Existing upstream executable bytes cannot change.
 
-Electron-builder ordinarily removes package metadata from dependency manifests.
-An `afterPack` hook restores the sealed DSH subtree through the public ASAR API,
-retaining native unpack flags and all non-DSH application bytes. This keeps the
-final runtime byte-identical to its inventory, including package scripts,
-licences and configuration. Missing native files stop packaging. The verifier
-normalizes portable inventory paths before invoking the Windows ASAR reader.
+Release checks authenticate the installer routes, discover its client injection, install a self-contained archive through HTTP and bundled pnpm, and restart the Profile to verify activation. Repository checks cover tray restoration, ordinary close, explicit quit, dialogs, tray failure and session shutdown. Interactive Windows tray clicks and actual customer model connectivity remain manual gates.
 
-Final verification compares ASAR's main.js against the exact native build, checks
-the overlay hashes, and launches the final application executable in Node mode
-against its ASAR runtime with an isolated DSH_HOME. The real Host serves HTML and
-mounts every shipped preset. `web_search` must be absent from each actual tool
-registry; `web_fetch` remains in the three full presets. All agents and the Host
-are disposed, with timeout failure. Raw credential-bearing ready URLs never
-enter retained evidence. Checksums and a machine-path-free report accompany the
-installer. Windows interactive installation remains a separate manual gate.
-
-Custom/user presets and explicit profile patches may override these defaults.
-This change does not promise air-gapped operation of models or other optional
-network capabilities. Old shell plugins are not migrated or silently enabled.
+The accepted integration stack lock is unchanged. Automatic update feeds and mandatory-update policy metadata remain absent. Custom user patches may override search defaults. The legacy shell and its older archived installer remain historical compatibility artifacts, not the current native entry.

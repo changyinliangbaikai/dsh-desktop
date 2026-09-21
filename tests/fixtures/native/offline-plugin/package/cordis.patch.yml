@@ -1,0 +1,4 @@
+- insert:
+    - id: desktop-offline-smoke
+      name: dsh-desktop-offline-smoke
+      config: {}

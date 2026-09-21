@@ -76,7 +76,7 @@ jobs:
           if ($env:RELEASE_TAG -ne "desktop-v$version") { throw 'Release tag does not match downstream version' }
       - name: Install downstream dependencies
         run: pnpm install --frozen-lockfile
-      - name: Install legacy offline plugin for regression checks
+      - name: Install independently locked offline plugin
         run: pnpm run offline-plugin:install
       - name: Run repository gates
         run: pnpm run check
@@ -111,7 +111,7 @@ jobs:
         run: pnpm run native:overlay
       - name: Package native unsigned Windows installer
         run: pnpm run pack:win
-      - name: Verify final ASAR and real tool registries
+      - name: Verify PDF conversion, offline installation and native window lifecycle
         run: pnpm run native:verify
       - name: Upload verified installer and evidence
         id: upload-installer
@@ -155,8 +155,8 @@ jobs:
           body: |
             Native DeepSeek Harness 0.1.6-alpha.2 desktop, pinned to ddefc45fbc7f8e46dd73185e68295696d1297887.
 
-            Windows x64 unsigned pilot. Web Search is disabled in the provider and all shipped agent presets. Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. The former shell and its offline-installer bootstrap are not bundled.
+            Windows x64 unsigned pilot. Web Search is disabled in the provider and all shipped agent presets. Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.2.0 in the active Desktop Profile. Window close hides to the Windows tray; click to restore, or choose Exit from its menu. Native Host shutdown remains unchanged.
 
-            Download the EXE and compare SHA256SUMS.txt. Build evidence and the configuration overlay hashes are attached. CI verifies the native ASAR and boots its final runtime to check Web and actual tool registries. Interactive Windows installation and intranet model connectivity still require testing. Back up existing Harness data before testing; data-format downgrade is not guaranteed.
+            Download the EXE and compare SHA256SUMS.txt. Build evidence and the configuration overlay hashes are attached. CI verifies the real-filesystem runtime, converts DOCX to PDF, installs an offline fixture and checks activation after restart, verifies Web Search tool registries, and exercises native window close/restore/quit. Interactive Windows installation and intranet model connectivity still require testing. Back up existing Harness data before testing; data-format downgrade is not guaranteed.
           files: |
             release-files/*

@@ -4,19 +4,21 @@ This repository is the thin Windows desktop shell for the official DeepSeek Harn
 
 ## Native Desktop migration branch
 
-The user-authorized native migration replaces the shipping shell with the pinned
-upstream Desktop application. `packaging/native-upstream.json` owns this candidate
-pin; the accepted integration-stack lock is unchanged. `scripts/native-*` only
-orchestrate upstream builds and configure generated deployment resources. Never
-edit the sibling Harness checkout or any upstream source in the disposable build
-checkout. The only permitted runtime resource delta is the reviewed four-file
-Web Search YAML overlay, recorded and resealed before packaging. The downstream
-Electron builder configuration may select product identity and omit update policy
-metadata; it must not replace native lifecycle or plugin behavior.
+The native migration uses the pinned upstream Desktop application without source edits.
+`packaging/native-upstream.json` owns the candidate and embedded-plugin pin; the
+accepted integration-stack lock is unchanged. The September 21 user authorization
+adds a downstream Electron entry for Windows tray integration, real-directory
+runtime packaging for native Office conversion, and the independently built
+offline installer. Native main.js and Host executables stay byte-identical.
 
-The old shell and offline plugin remain regression-tested legacy sources and are
-not bundled in native releases. Their checks are not compatibility evidence for
-the native stack. The Windows native packaging workflow is an additional gate.
+Generated resource changes are restricted to the four Web Search YAML files,
+the Web bundle's installation row and dependency metadata, and the exact reviewed
+plugin archive/tree.
+Reinventory and verify every byte. Never patch upstream JavaScript, override
+private methods, or duplicate Host lifecycle and plugin reconciliation. Tray
+quit delegates to native app.quit and its existing asynchronous Host cleanup.
+The native package must exercise Office conversion and offline installation
+plus restart from its final filesystem layout before publication.
 
 ## Product boundary
 

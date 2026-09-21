@@ -24,11 +24,11 @@ The store retains one committed tarball per package and enforces package-count a
 
 ## Process and output controls
 
-Only one CLI process may run. It has a fixed argument vector, bounded stdout/stderr tails, a deadline, request cancellation, and unload disposal. Browser errors are stable, prewritten summaries; raw CLI output remains Host-only and is never returned across the renderer boundary.
+Only one package operation may run. The default operation is the published implementation shared by the official CLI, using the active Profile and its package-manager executable. It has a fixed argument vector, bounded stdout/stderr tails, a deadline, request cancellation, and unload disposal. Browser errors are stable, prewritten summaries; raw CLI output remains Host-only and is never returned across the renderer boundary.
 
 ## Remaining trust and manual gates
 
 - A trusted package publisher and distribution/signing procedure remain deployment responsibilities. SHA-256 is displayed for comparison but no signature format is imposed.
 - Windows process-tree behavior requires Windows CI and native acceptance.
 - A successful install does not prove that the installed plugin is safe, starts successfully after restart, or passes subjective UI review.
-- The DSH Web server itself has no general authentication. This plugin therefore refuses non-loopback binding instead of offering a remote administration mode.
+- Both routes require the active Host connection authentication, then loopback/same-origin checks. Mutations additionally require the per-process installer token. Native Desktop forwards its own authenticated Host cookie; arbitrary unauthenticated requests cannot retrieve the token. Network-exposed binding remains forbidden.

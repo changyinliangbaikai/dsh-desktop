@@ -10,7 +10,7 @@ const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const pluginRoot = join(projectRoot, 'plugins', 'dsh-offline-plugin-installer')
 const pluginManifestPath = join(pluginRoot, 'package.json')
 const pluginLockPath = join(pluginRoot, 'package-lock.json')
-const runtimeManifestPath = join(projectRoot, 'packaging', 'runtime-manifest.json')
+const runtimeManifestPath = join(projectRoot, 'packaging', 'native-upstream.json')
 
 function readJson(path) {
   return JSON.parse(readFileSync(path, 'utf8'))

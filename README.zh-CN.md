@@ -2,28 +2,21 @@
 
 [English](README.md)
 
-本分支使用 **DeepSeek Harness 原生 Electron 桌面客户端**，固定版本 **0.1.6-alpha.2**、提交 `ddefc45fbc7f8e46dd73185e68295696d1297887`。Dsh-Desktop 负责构建编排与内网默认配置，新安装包不再使用旧的自制 Electron 壳。
+此分支使用固定的 DSH 原生桌面客户端 **0.1.6-alpha.2**，上游提交 `ddefc45fbc7f8e46dd73185e68295696d1297887`。下游测试版本 **0.3.0-native.2**，Windows x64，未签名。上游源码及原生 main.js 保持不变。
 
-发布标签为 **desktop-v0.3.0-native.1**，客户端与内置 Harness 都保留原生版本 **0.1.6-alpha.2**。安装名称为 **Harness Desktop Intranet**，使用独立应用标识，属于未签名 Windows x64 测试版。
+## 本版行为
 
-## 内网默认配置
+- Word/PPT/Excel 预览所需的完整 LibreOffice 引擎放在真实磁盘目录，避免 ASAR 虚拟路径无法启动原生转换进程。无需运行时下载引擎或另外安装 Office。
+- Windows 关闭按钮隐藏窗口到右下角托盘。左键点击恢复窗口；右键菜单可打开窗口或退出。退出仍由原生客户端清理 Host 和子进程。
+- 内置独立插件 `dsh-offline-plugin-installer@0.2.0`，入口为“设置 → 插件 → 离线安装”。使用当前 desktop Profile 和客户端自带 pnpm，禁用联网与安装脚本。安装后需从托盘选择退出，再重新启动才能加载；仅关闭窗口不会重启。
+- 旧插件仍声明 Harness 0.1.2-rc.1 兼容时会被拒绝，必须针对 0.1.6-alpha.2 重建。依赖未在离线存储中准备好的包无法安装。插件数据无需迁移，但更高版本 Harness 写入的会话不承诺可降级。
+- Web Search 提供方和完整预设中的搜索默认停用；保留 web_fetch。模型地址和其他功能不因此自动变成离线模式。
+- 不携带自动更新源和上游强制更新策略。请手动安装新的 GitHub 测试版本。
 
-- 停用 DeepSeek Web Search 服务；standard、ptc、cordis 三个 Agent 预设均显式配置 `search: false`，新会话不再暴露 `web_search`。minimal 本身无 Web 工具。
-- 保留 `web_fetch`、模型接口、权限、原生插件管理和 Office 能力。此次是默认配置调整，不是网络隔离机制；用户仍可自行修改预设与 Profile。
-- 不嵌入自动更新地址、上游强制更新服务或飞书测试登录配置，测试版后续从 GitHub 手动下载升级。
-- 不包含旧壳的关闭到托盘逻辑和离线安装插件引导。旧离线安装插件面向 Harness 0.1.2-rc.1，尚未适配新版本，请勿直接安装旧归档。
-- 原生桌面使用 `$DSH_HOME/profiles/desktop`，可能与 CLI 共享部分用户数据。测试新 Harness 前请备份既有数据；新会话格式不保证可降级读取。
+## 构建与验证
 
-## 构建与下载
+构建命令见 [English README](README.md#build-and-release)。使用 Windows x64 和固定 Node/pnpm 版本，隔离上游检出位于工作区 `.artifacts/native-desktop/upstream`。
 
-GitHub 的 **Windows package** 工作流在 Windows x64 上执行原生构建。发布标签必须与仓库 package.json 一致；全部验证通过后自动创建 GitHub 预发布，提供 EXE、SHA256SUMS.txt、配置差异摘要和构建证据。手动运行默认仅产生 Actions 临时产物；勾选 publish 后，验证通过即从该次精确提交创建版本标签与预发布。
+发布前检查完整运行时字节、未改动的原生入口、托盘入口和图标；使用最终应用的运行时实际执行 DOCX→PDF、认证后的插件上传安装、随包 pnpm 离线操作，以及重启后插件激活。所有四个预设也需通过 Web Search 停用检查。
 
-本地构建需要 Windows x64、Node 24、pnpm 11.7.0、Python、Visual C++ Build Tools 和 Windows SDK。目录约定与完整命令见 [英文说明](README.md#build-and-release)。上游固定提交检出到工作区 `.artifacts/native-desktop/upstream`，安装包位于 `.artifacts/native-desktop/release`；现有 deepseek-harness 目录保持只读。
-
-打包阶段仅调整生成资源中的四个 YAML 配置文件，记录变更前后散列并重新验证原生运行时清单；不修改上游源码。安装包内的原生主进程代码必须与该提交构建结果逐字节一致。
-
-## 验证边界
-
-保留旧壳和旧插件的回归检查，并新增内网配置测试。Windows 构建另行验证安装包资源、原生 Host 启动、Web 页面和四个预设的真实工具注册表，不调用付费模型 API。交互式安装、界面效果、内网模型访问、Windows 安全软件兼容性仍需下载后实测。未签名状态不等同于生产发布。
-
-本次为候选原生桌面版本，不提升工作区已验收插件栈的版本锁。详见 [构建架构](docs/native-desktop.md)。
+交互式托盘点击、安装卸载、界面观感及甲方内网模型连接仍属于实机验收。原有壳源码保留作回归参考，但不作为本版入口。此候选版本不推进工作区 `workspace.lock.json` 的全插件兼容基线。

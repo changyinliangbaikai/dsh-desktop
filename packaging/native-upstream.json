@@ -4,5 +4,18 @@
   "version": "0.1.6-alpha.2",
   "target": "win-x64",
   "appId": "io.github.changyinliangbaikai.dsh-desktop.native",
-  "presets": ["cordis", "ptc", "standard"]
+  "presets": [
+    "cordis",
+    "ptc",
+    "standard"
+  ],
+  "embeddedPlugins": [
+    {
+      "name": "dsh-offline-plugin-installer",
+      "version": "0.2.0",
+      "archive": "dsh-offline-plugin-installer-0.2.0.tgz",
+      "integrity": "sha512-EV6ropzYjJ2XlU/RFNsq3nSTH7tJMtyKkAnSnY8DieUhN/kxA7gwHIICxH9JK0aQUgIduFnSrKESYbXwiYE2dw==",
+      "profile": "desktop"
+    }
+  ]
 }

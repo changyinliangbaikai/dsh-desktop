@@ -14,7 +14,7 @@ export class OfflinePackageInstaller {
   constructor(
     private readonly policy: ArchivePolicy,
     private readonly store: ArchiveStore,
-    private readonly cli: DshCliRunner,
+    private readonly cli: Pick<DshCliRunner, 'add' | 'dispose'>,
     private readonly logger: InstallerLogger,
   ) {}
 

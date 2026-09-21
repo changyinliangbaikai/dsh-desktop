@@ -46,7 +46,7 @@ describe('packaging assets', () => {
   })
 
   it('commits the exact reviewed offline installer archive used by CI staging', () => {
-    const manifest = JSON.parse(readFileSync(join(projectRoot, 'packaging', 'runtime-manifest.json'), 'utf8'))
+    const manifest = JSON.parse(readFileSync(join(projectRoot, 'packaging', 'native-upstream.json'), 'utf8'))
     const plugin = manifest.embeddedPlugins[0]
     const sourceRoot = join(projectRoot, 'plugins', 'dsh-offline-plugin-installer')
     const sourceManifest = JSON.parse(readFileSync(join(sourceRoot, 'package.json'), 'utf8'))
