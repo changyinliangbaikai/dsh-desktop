@@ -18,6 +18,14 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version: 24.19.0
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 11.7.0
+      - name: Build standalone Office diagnostics
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm run build
+          node scripts/package-office-diagnostics.mjs
       - name: Download and verify the reported release
         shell: pwsh
         run: |
@@ -26,18 +34,17 @@ jobs:
           $installer = Join-Path $output 'native2.exe'
           Invoke-WebRequest 'https://github.com/changyinliangbaikai/dsh-desktop/releases/download/desktop-v0.3.0-native.2/Harness-Desktop-Intranet-0.1.6-alpha.2-x64.exe' -OutFile $installer
           if ((Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne '97ce15b3f8c0f2a49e13872cf7b3373f8739d536838849e2ef0cae9fa35a6129') { throw 'Release digest mismatch' }
-          7z x $installer "-o$output/outer" -y
-          if ($LASTEXITCODE -ne 0) { throw 'Installer extraction failed' }
-          $payload = Get-ChildItem "$output/outer" -Recurse -Filter 'app-64.7z' | Select-Object -First 1
-          if ($null -eq $payload) { throw 'Installer payload missing' }
-          7z x $payload.FullName "-o$output/app" -y
-          if ($LASTEXITCODE -ne 0) { throw 'Application extraction failed' }
+          $installed = Join-Path $output 'installed app'
+          $setup = Start-Process -FilePath $installer -ArgumentList @('/S', "/D=$installed") -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw 'NSIS installation failed' }
+          if (-not (Test-Path (Join-Path $installed 'Harness Desktop Intranet.exe'))) { throw 'Installed application missing' }
           "PREVIEW_DIAG_ROOT=$output" >> $env:GITHUB_ENV
+          "PREVIEW_DIAG_APP=$installed" >> $env:GITHUB_ENV
       - name: Block application outbound traffic except IPv4 and IPv6 loopback
         shell: pwsh
         run: |
-          $application = (Get-Item (Join-Path $env:PREVIEW_DIAG_ROOT 'app/Harness Desktop Intranet.exe')).FullName
-          $engine = (Get-Item (Join-Path $env:PREVIEW_DIAG_ROOT 'app/resources/app/dsh/node_modules/@deepseek-ai/libreoffice-kit-win32-x64/bin/libreoffice-kit.exe')).FullName
+          $application = (Get-Item (Join-Path $env:PREVIEW_DIAG_APP 'Harness Desktop Intranet.exe')).FullName
+          $engine = (Get-Item (Join-Path $env:PREVIEW_DIAG_APP 'resources/app/dsh/node_modules/@deepseek-ai/libreoffice-kit-win32-x64/bin/libreoffice-kit.exe')).FullName
           node scripts/native-network-probe.mjs allowed
           if ($LASTEXITCODE -ne 0) { throw 'Cannot establish outbound probe baseline' }
           Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True
@@ -50,3 +57,19 @@ jobs:
       - name: Exercise the released native window preview and lifecycle
         shell: pwsh
         run: node scripts/native-preview-diagnosis.mjs
+      - name: Test and archive portable customer diagnostics
+        shell: pwsh
+        run: |
+          $kit = Join-Path (Split-Path $PWD) '.artifacts/native-desktop/office-diagnostics'
+          & (Join-Path $kit 'diagnose-office.ps1') -Application (Join-Path $env:PREVIEW_DIAG_APP 'Harness Desktop Intranet.exe')
+          if ($LASTEXITCODE -ne 0) { throw 'Support diagnostic failed' }
+          $report = Get-Content (Join-Path $kit 'diagnostic-result.json') | ConvertFrom-Json
+          if ($report.checks.resources.failures.Count -ne 0 -or $report.checks.engineResolution -ne 'passed' -or $report.checks.conversion.passed -ne $true) { throw 'Installed Office probe did not pass' }
+          $report | ConvertTo-Json -Depth 8
+          Remove-Item (Join-Path $kit 'diagnostic-result.json')
+          Compress-Archive -Path "$kit/*" -DestinationPath (Join-Path (Split-Path $kit) 'Dsh-Office-Diagnostics-native2.zip')
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Dsh-Office-Diagnostics-native2
+          path: ../.artifacts/native-desktop/Dsh-Office-Diagnostics-native2.zip
+          if-no-files-found: error

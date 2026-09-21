@@ -63,7 +63,8 @@ Coverage excludes only the Electron composition root. Behavioral logic belongs i
 Dispatch `windows-package.yml` on the native migration branch with
 `diagnosePreview=true` and `publish=false`. This skips packaging and publication,
 downloads the pinned `desktop-v0.3.0-native.2` installer, checks its SHA-256, and
-extracts the actual application. Update the explicit release pin and digest
+installs the actual application with NSIS into an isolated path containing spaces.
+Update the explicit release pin and digest
 together when investigating another release.
 
 The Windows diagnosis runs in a disposable runner. It verifies an external
@@ -76,6 +77,24 @@ through visible UI controls. Artifacts and isolated homes stay outside the repos
 
 A passing result proves this fixture and application layout on the runner. It
 does not prove arbitrary documents, visual fidelity, physical network disconnect,
-customer security software, NSIS installation, or manual tray clicks. Preserve
+customer security software, customer-specific NSIS behavior, or manual tray clicks. Preserve
 those as separate acceptance layers; the generic Office unavailable message alone
 does not identify which service, transport, or engine boundary failed.
+
+The same job packages and tests a standalone support ZIP. Build it locally with
+`pnpm run build && node scripts/package-office-diagnostics.mjs`. The output is
+under the sibling `.artifacts/native-desktop/office-diagnostics` directory.
+On the affected Windows PC, extract it into a writable folder, keep the client
+open, and run `diagnose-office.cmd`. If automatic discovery is ambiguous or the
+client is closed, select the installed executable in the file picker.
+
+The tool runs the installed Electron in Node mode, compares Office resources to
+the bundled inventory, resolves the published conversion engine, and converts
+only the included fixture in a temporary directory. It requires no network,
+external Node installation, or Office installation. It does not change the
+application, Profile, or workspace. The resulting `diagnostic-result.json`
+contains OS/component versions, relative package paths, integrity results, and
+bounded error codes; it omits error messages, stacks, absolute paths, tokens,
+and user documents. Engine success does not prove that the user's active Profile
+exposes the Office service. Corruption or missing files should be investigated
+before a repair; do not automatically delete user profiles or bypass endpoint policy.
