@@ -2,6 +2,7 @@ name: Released native preview diagnosis
 
 on:
   workflow_dispatch:
+  workflow_call:
 
 permissions:
   contents: read

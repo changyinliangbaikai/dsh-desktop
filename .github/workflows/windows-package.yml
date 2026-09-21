@@ -7,6 +7,10 @@ on:
         description: Publish the verified installer as a GitHub prerelease
         type: boolean
         default: false
+      diagnosePreview:
+        description: Test Office preview in the published native.2 installer without rebuilding
+        type: boolean
+        default: false
   push:
     tags:
       - desktop-v*
@@ -15,7 +19,11 @@ permissions:
   contents: read
 
 jobs:
+  diagnose-preview:
+    if: inputs.diagnosePreview == true
+    uses: ./.github/workflows/native-preview-diagnosis.yml
   package-windows:
+    if: inputs.diagnosePreview != true
     runs-on: windows-2022
     timeout-minutes: 90
     outputs:
