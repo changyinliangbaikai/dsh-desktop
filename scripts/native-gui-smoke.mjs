@@ -80,12 +80,29 @@ export async function smokeNativeWindow(executable, artifacts) {
       };
       await call('officeToPdf/generation', {});
       const session = await call('session/create', { request: { cwd: ${JSON.stringify(home)} } });
+      await call('session/rename', { request: { sessionId: session.sessionId, title: 'Office preview smoke' } });
       const pdf = await call('officeToPdf/render', { workspaceFileScopeId: session.sessionId, path: 'preview.docx', priority: 'foreground' });
       return { bytes: pdf.bytes, header: atob(pdf.data).slice(0, 5) };
     })()`;
     const preview = await evaluate(`${primary}.webContents.executeJavaScript(${JSON.stringify(previewCode)})`, 90000);
     assert.equal(preview.header, '%PDF-');
     assert.ok(preview.bytes > 100);
+    const inWindow = code => evaluate(`${primary}.webContents.executeJavaScript(${JSON.stringify(code)})`);
+    await until(() => inWindow(`Boolean([...document.querySelectorAll('[role="treeitem"]')].find(e => e.textContent.includes('Office preview smoke')))`), 'preview session in sidebar', 20000);
+    await inWindow(`[...document.querySelectorAll('[role="treeitem"]')].find(e => e.textContent.includes('Office preview smoke')).click(); true`);
+    await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-expand]'))`), 'right sidebar control', 10000);
+    await inWindow(`document.querySelector('[data-sidebar-right-expand]').click(); true`);
+    await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-guide-entry="files"]'))`), 'Files entry', 10000);
+    await inWindow(`document.querySelector('[data-sidebar-right-guide-entry="files"]').click(); true`);
+    await until(() => inWindow(`Boolean([...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === 'preview.docx'))`), 'DOCX in Files', 15000);
+    await inWindow(`[...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === 'preview.docx').click(); true`);
+    let previewState;
+    await until(async () => {
+      previewState = await inWindow(`({ canvas: Boolean(document.querySelector('[data-document-preview] canvas')), failure: document.querySelector('[data-textpreview-failed]')?.textContent })`);
+      return previewState.canvas || Boolean(previewState.failure);
+    }, 'Office preview UI result', 90000);
+    assert.equal(previewState.failure, undefined, previewState.failure);
+    assert.equal(previewState.canvas, true);
     await evaluate(`(() => { const w = ${primary}; w.close(); return true; })()`);
     await until(() => evaluate(`Boolean(${primary} && !${primary}.isDestroyed() && !${primary}.isVisible())`), 'close to tray', 10000);
     await evaluate(`${electron}.app.emit('second-instance'); true`);
@@ -98,7 +115,7 @@ export async function smokeNativeWindow(executable, artifacts) {
       quitTimer = setTimeout(() => reject(new Error('Native GUI did not finish Host shutdown')), 45000);
     })]).finally(() => clearTimeout(quitTimer));
     assert.equal(outcome.code, 0, diagnostic);
-    return { closeHides: true, nativeRestore: true, nativeQuit: true, officePreviewRemote: preview, manualTrayClick: 'pending' };
+    return { closeHides: true, nativeRestore: true, nativeQuit: true, officePreviewRemote: preview, officePreviewCanvas: true, manualTrayClick: 'pending' };
   } finally {
     socket?.close();
     for (const receiver of pending.values()) clearTimeout(receiver.timer);
