@@ -57,3 +57,25 @@ reproducibility gate. Supplying a tarball beside the desktop output without
 passing this gate is not embedding evidence.
 
 Coverage excludes only the Electron composition root. Behavioral logic belongs in covered modules.
+
+## Diagnosing preview in an existing native release
+
+Dispatch `windows-package.yml` on the native migration branch with
+`diagnosePreview=true` and `publish=false`. This skips packaging and publication,
+downloads the pinned `desktop-v0.3.0-native.2` installer, checks its SHA-256, and
+extracts the actual application. Update the explicit release pin and digest
+together when investigating another release.
+
+The Windows diagnosis runs in a disposable runner. It verifies an external
+request succeeds, blocks the application and conversion engine's outbound
+traffic except loopback, and verifies the same request fails. It then starts a
+fresh native Profile, calls the real Office preview RPC, opens the fixture through
+the Files sidebar, checks for a preview canvas without a failure message, and
+checks close/restore/quit. First-run notices and collapsed workspaces are handled
+through visible UI controls. Artifacts and isolated homes stay outside the repository.
+
+A passing result proves this fixture and application layout on the runner. It
+does not prove arbitrary documents, visual fidelity, physical network disconnect,
+customer security software, NSIS installation, or manual tray clicks. Preserve
+those as separate acceptance layers; the generic Office unavailable message alone
+does not identify which service, transport, or engine boundary failed.

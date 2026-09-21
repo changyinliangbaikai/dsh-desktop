@@ -96,7 +96,12 @@ export async function smokeNativeWindow(executable, artifacts) {
     };
     // Empty sessions intentionally display the localized New Session label.
     await inWindow(`[...document.querySelectorAll('button')].find(e => e.textContent === 'Continue')?.click(); true`);
-    await until(() => inWindow(`document.querySelectorAll('[role="treeitem"][aria-selected]').length === 1`), 'single preview session in sidebar', 20000);
+    await until(() => inWindow(`(() => {
+      [...document.querySelectorAll('button')].find(e => e.textContent === 'Configure later')?.click();
+      const workspace = document.querySelector('[role="treeitem"][aria-expanded="false"]');
+      workspace?.click();
+      return document.querySelectorAll('[role="treeitem"][aria-selected]').length === 1;
+    })()`), 'single preview session in sidebar', 20000);
     await inWindow(`document.querySelector('[role="treeitem"][aria-selected]').click(); true`);
     await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-expand]'))`), 'right sidebar control', 10000);
     await inWindow(`document.querySelector('[data-sidebar-right-expand]').click(); true`);
