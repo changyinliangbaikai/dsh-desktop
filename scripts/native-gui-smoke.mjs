@@ -72,7 +72,7 @@ export async function smokeNativeWindow(executable, artifacts) {
     const previewCode = `(async () => {
       const call = async (method, payload) => {
         const response = await fetch('/api/' + method, { method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ type: 'client-request', rpcId: crypto.randomUUID(), method, payload }) });
+          body: JSON.stringify({ type: 'client-request', rpcId: crypto.randomUUID(), method, payload: { args: payload } }) });
         if (!response.ok) throw new Error(method + ': HTTP ' + response.status);
         const envelope = await response.json();
         if (!envelope.result.ok) throw new Error(method + ': ' + JSON.stringify(envelope.result.error));

@@ -1,0 +1,37 @@
+name: Released native preview diagnosis
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  preview:
+    runs-on: windows-2022
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24.19.0
+      - name: Download and verify the reported release
+        shell: pwsh
+        run: |
+          $output = Join-Path (Split-Path $PWD) '.artifacts/native-preview-diagnosis'
+          New-Item -ItemType Directory -Force $output | Out-Null
+          $installer = Join-Path $output 'native2.exe'
+          Invoke-WebRequest 'https://github.com/changyinliangbaikai/dsh-desktop/releases/download/desktop-v0.3.0-native.2/Harness-Desktop-Intranet-0.1.6-alpha.2-x64.exe' -OutFile $installer
+          if ((Get-FileHash $installer -Algorithm SHA256).Hash.ToLowerInvariant() -ne '97ce15b3f8c0f2a49e13872cf7b3373f8739d536838849e2ef0cae9fa35a6129') { throw 'Release digest mismatch' }
+          7z x $installer "-o$output/outer" -y
+          if ($LASTEXITCODE -ne 0) { throw 'Installer extraction failed' }
+          $payload = Get-ChildItem "$output/outer" -Recurse -Filter 'app-64.7z' | Select-Object -First 1
+          if ($null -eq $payload) { throw 'Installer payload missing' }
+          7z x $payload.FullName "-o$output/app" -y
+          if ($LASTEXITCODE -ne 0) { throw 'Application extraction failed' }
+          "PREVIEW_DIAG_ROOT=$output" >> $env:GITHUB_ENV
+      - name: Exercise the released native window preview and lifecycle
+        shell: pwsh
+        run: node scripts/native-preview-diagnosis.mjs
