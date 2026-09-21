@@ -71,6 +71,9 @@ export async function smokeNativeWindow(executable, artifacts) {
     await until(() => ready, 'native Host');
     await until(() => evaluate(`Boolean(${primary}?.isVisible())`), 'visible application window');
     const previewCode = `(async () => {
+      // The window and Host ready line can precede the native auth-cookie bridge.
+      // Use the same public boot contract awaited by the real frontend.
+      await window.dshDesktopBoot.ready();
       const call = async (method, payload) => {
         const response = await fetch('/api/' + method, { method: 'POST', headers: { 'content-type': 'application/json' },
           body: JSON.stringify({ type: 'client-request', rpcId: crypto.randomUUID(), method, payload: { args: payload } }) });
