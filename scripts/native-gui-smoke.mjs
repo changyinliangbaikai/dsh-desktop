@@ -1,12 +1,13 @@
 /** Programmatic final-app close/restore/quit check; manual tray clicks stay separate. */
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
-import { mkdtempSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export async function smokeNativeWindow(executable, artifacts) {
   const home = mkdtempSync(join(artifacts, 'gui-smoke-'));
+  copyFileSync(new URL('../tests/fixtures/native/preview.docx', import.meta.url), join(home, 'preview.docx'));
   const env = { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1' };
   delete env.ELECTRON_RUN_AS_NODE;
   delete env.NODE_OPTIONS;
@@ -57,9 +58,9 @@ export async function smokeNativeWindow(executable, artifacts) {
       if (reply.error || reply.result?.exceptionDetails) receiver.reject(new Error(JSON.stringify(reply.error ?? reply.result.exceptionDetails)));
       else receiver.resolve(reply.result.result.value);
     });
-    const evaluate = expression => new Promise((resolve, reject) => {
+    const evaluate = (expression, timeout = 10000) => new Promise((resolve, reject) => {
       const id = ++sequence;
-      const timer = setTimeout(() => { pending.delete(id); reject(new Error('GUI inspector evaluation timed out')); }, 10000);
+      const timer = setTimeout(() => { pending.delete(id); reject(new Error('GUI inspector evaluation timed out')); }, timeout);
       pending.set(id, { resolve, reject, timer });
       socket.send(JSON.stringify({ id, method: 'Runtime.evaluate', params: { expression, returnByValue: true, awaitPromise: true } }));
     });
@@ -68,6 +69,23 @@ export async function smokeNativeWindow(executable, artifacts) {
     const primary = `${windows}.find(w => w.webContents.getURL() === 'dsh-app://app/')`;
     await until(() => ready, 'native Host');
     await until(() => evaluate(`Boolean(${primary}?.isVisible())`), 'visible application window');
+    const previewCode = `(async () => {
+      const call = async (method, payload) => {
+        const response = await fetch('/api/' + method, { method: 'POST', headers: { 'content-type': 'application/json' },
+          body: JSON.stringify({ type: 'client-request', rpcId: crypto.randomUUID(), method, payload }) });
+        if (!response.ok) throw new Error(method + ': HTTP ' + response.status);
+        const envelope = await response.json();
+        if (!envelope.result.ok) throw new Error(method + ': ' + JSON.stringify(envelope.result.error));
+        return envelope.result.value;
+      };
+      await call('officeToPdf/generation', {});
+      const session = await call('session/create', { request: { cwd: ${JSON.stringify(home)} } });
+      const pdf = await call('officeToPdf/render', { workspaceFileScopeId: session.sessionId, path: 'preview.docx', priority: 'foreground' });
+      return { bytes: pdf.bytes, header: atob(pdf.data).slice(0, 5) };
+    })()`;
+    const preview = await evaluate(`${primary}.webContents.executeJavaScript(${JSON.stringify(previewCode)})`, 90000);
+    assert.equal(preview.header, '%PDF-');
+    assert.ok(preview.bytes > 100);
     await evaluate(`(() => { const w = ${primary}; w.close(); return true; })()`);
     await until(() => evaluate(`Boolean(${primary} && !${primary}.isDestroyed() && !${primary}.isVisible())`), 'close to tray', 10000);
     await evaluate(`${electron}.app.emit('second-instance'); true`);
@@ -80,7 +98,7 @@ export async function smokeNativeWindow(executable, artifacts) {
       quitTimer = setTimeout(() => reject(new Error('Native GUI did not finish Host shutdown')), 45000);
     })]).finally(() => clearTimeout(quitTimer));
     assert.equal(outcome.code, 0, diagnostic);
-    return { closeHides: true, nativeRestore: true, nativeQuit: true, manualTrayClick: 'pending' };
+    return { closeHides: true, nativeRestore: true, nativeQuit: true, officePreviewRemote: preview, manualTrayClick: 'pending' };
   } finally {
     socket?.close();
     for (const receiver of pending.values()) clearTimeout(receiver.timer);
