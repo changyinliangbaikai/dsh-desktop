@@ -28,6 +28,7 @@ try {
   }
   if (-not (Test-Path -LiteralPath $report)) { throw 'No diagnostic report was produced.' }
   Write-Host 'Done. Please send diagnostic-result.json back for analysis.'
+  exit 0
 } catch {
   Write-Host 'The diagnostic could not complete. Please report this code:'
   Write-Host $_.FullyQualifiedErrorId

@@ -61,7 +61,7 @@ jobs:
         shell: pwsh
         run: |
           $kit = Join-Path (Split-Path $PWD) '.artifacts/native-desktop/office-diagnostics'
-          & (Join-Path $kit 'diagnose-office.ps1') -Application (Join-Path $env:PREVIEW_DIAG_APP 'Harness Desktop Intranet.exe')
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $kit 'diagnose-office.ps1') -Application (Join-Path $env:PREVIEW_DIAG_APP 'Harness Desktop Intranet.exe')
           if ($LASTEXITCODE -ne 0) { throw 'Support diagnostic failed' }
           $report = Get-Content (Join-Path $kit 'diagnostic-result.json') | ConvertFrom-Json
           if ($report.checks.resources.failures.Count -ne 0 -or $report.checks.engineResolution -ne 'passed' -or $report.checks.conversion.passed -ne $true) { throw 'Installed Office probe did not pass' }
