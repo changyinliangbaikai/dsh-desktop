@@ -7,6 +7,7 @@
 ## 本版行为
 
 - 采用上游 ASAR 打包及完整 Office 依赖解包方式，LibreOffice Kit 升至 0.1.1。无需运行时下载引擎或另外安装 Office。
+- Windows 的 Office 转换还依赖 x64 Microsoft Visual C++ v14 运行库，上游转换组件未捆绑它。干净内网电脑需提前从[微软官方下载页](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)准备离线安装程序，并先安装运行库。构建机自带开发运行库，不能据此认定客户 Win10 已满足此条件。
 - 使用上游原生托盘，首次关闭确认后，Windows 关闭按钮隐藏窗口到右下角托盘。左键点击恢复窗口；右键菜单可打开窗口或退出。退出仍由原生客户端清理 Host 和子进程。
 - 内置独立插件 `dsh-offline-plugin-installer@0.3.0`，入口为“设置 → 插件 → 离线安装”。使用当前 desktop Profile 和客户端自带 pnpm，禁用联网与安装脚本。安装后需从托盘选择退出，再重新启动才能加载；仅关闭窗口不会重启。
 - 旧插件仍声明 Harness 0.1.6-alpha.2 或更早版本兼容时会被拒绝，必须针对 0.1.7-rc.2 重建。依赖未在离线存储中准备好的包无法安装。插件数据无需迁移，但更高版本 Harness 写入的会话不承诺可降级。

@@ -30,3 +30,10 @@ account login and configuring an intranet provider afterward.
 The accepted workspace stack lock stays unchanged until full supported-stack
 acceptance. A candidate build does not by itself establish Windows 10 customer
 preview acceptance or repair the previously reported machine-specific failure.
+
+The Office engine also depends on the system x64 Microsoft Visual C++ v14
+Redistributable; it is not included by the upstream kit. Clean-machine operators
+must prepare Microsoft's offline runtime installer separately. CI records its
+runtime DLL versions so hosted-runner success is not presented as proof of a
+prerequisite-free Windows 10 installation. This is a dependency finding, not a
+confirmed diagnosis of the earlier customer failure.

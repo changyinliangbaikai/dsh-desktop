@@ -122,6 +122,15 @@ jobs:
         run: pnpm run native:overlay
       - name: Package native unsigned Windows installer
         run: pnpm run pack:win
+      - name: Record Windows runtime prerequisites
+        shell: pwsh
+        run: |
+          $files = @('vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll') | ForEach-Object {
+            $dll = Join-Path $env:SystemRoot "System32/$_"
+            if (-not (Test-Path $dll)) { throw "Missing required system runtime: $_" }
+            @{ name = $_; version = (Get-Item $dll).VersionInfo.FileVersion }
+          }
+          @{ platform = 'Windows Server 2022 hosted runner'; visualCppRuntime = $files; bundledByInstaller = $false; cleanWindows10Acceptance = 'pending' } | ConvertTo-Json -Depth 5 | Set-Content ../.artifacts/native-desktop/release/prerequisite-evidence.json
       - name: Verify PDF conversion, offline installation and native window lifecycle
         run: pnpm run native:verify
       - name: Upload verified installer and evidence
@@ -167,6 +176,8 @@ jobs:
             Native DeepSeek Harness 0.1.7-rc.2 desktop, pinned to 477b4f420553e8a52c2fbccc464d7561b239c443.
 
             Windows x64 unsigned pilot. Web Search is disabled in the provider and all shipped agent presets. Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.3.0 in the active Desktop Profile. The upstream Windows tray hides the window after its first-close acknowledgement; click to restore, or choose Exit from its menu. Native Host shutdown remains unchanged.
+
+            Windows Office conversion requires the x64 Microsoft Visual C++ v14 Redistributable, installed separately from Microsoft before using a clean offline PC. The hosted runner already has this prerequisite; its DLL versions are attached in prerequisite-evidence.json.
 
             Download the EXE and compare SHA256SUMS.txt. Build evidence and the configuration overlay hashes are attached. CI verifies the sealed ASAR runtime and complete native unpacking, converts DOCX/XLSX/PPTX to PDF and exercises the standalone Office CLI, installs an offline fixture and checks activation after restart, verifies Web Search tool registries, and exercises native window close/restore/quit. Interactive Windows installation and intranet model connectivity still require testing. Back up existing Harness data before testing; data-format downgrade is not guaranteed.
           files: |
