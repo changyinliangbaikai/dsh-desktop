@@ -1,0 +1,10 @@
+{
+  "overrides": [
+    {
+      "files": ["scripts/**/*.mjs"],
+      "env": { "node": true, "es2024": true },
+      "globals": { "fetch": "readonly", "WebSocket": "readonly", "AbortSignal": "readonly", "AbortController": "readonly", "URL": "readonly" },
+      "rules": { "no-undef": "error" }
+    }
+  ]
+}

@@ -1,7 +1,7 @@
 /** Keyless assembled-profile check, executed by the packaged Electron runtime. */
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdirSync, writeFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, delimiter } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
