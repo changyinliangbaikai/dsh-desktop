@@ -29,8 +29,8 @@ export function fixtureManifest(overrides: Record<string, unknown> = {}): Record
     engines: { node: '^22.19.0 || >=24.0.0' },
     dsh: { bundle: { patch: './cordis.patch.yml' } },
     peerDependencies: {
-      '@deepseek-ai/cordis': '4.0.2',
-      '@deepseek-ai/dsh-host-webserver': '0.1.6-alpha.2',
+      '@deepseek-ai/cordis': '4.0.4',
+      '@deepseek-ai/dsh-host-webserver': '0.1.7-rc.2',
     },
     ...overrides,
   }

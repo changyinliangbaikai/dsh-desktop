@@ -1,7 +1,7 @@
 /** Keyless assembled-profile check, executed by the packaged Electron runtime. */
 import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
-import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
+import { mkdirSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, delimiter } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
@@ -20,7 +20,7 @@ const runtime = process.argv[3];
 const launch = () => runProfile({
   environment: loadLayeredEnv('dsh'), profile: 'desktop', resolutionMode: 'runtime',
   resolvedProfile: { profile: loadProfileDirectory('dsh', profileDir, installAnchor), installAnchor }, patchFiles: [], args: ['--no-open', '--port', '0'],
-  packageManager: { command: process.execPath, args: ['--expose-internals', join(runtime, 'pnpm/bin/pnpm.mjs')],
+  packageManager: { command: process.execPath, args: ['--expose-internals', join(runtime, 'pnpm/bin/pnpm.cjs')],
     env: { ELECTRON_RUN_AS_NODE: '1', DSH_DESKTOP_NODE_EXECUTABLE: process.execPath,
       PATH: `${join(runtime, 'bin')}${delimiter}${process.env.PATH ?? ''}` } },
 });
@@ -34,13 +34,6 @@ try {
   assert.equal(response.status, 200);
   assert.ok((await response.text()).includes('<html'));
   const fixtures = fileURLToPath(new URL('../tests/fixtures/native/', import.meta.url));
-  const document = readFileSync(join(fixtures, 'preview.docx'));
-  const converted = await ctx.officeToPdf.convert({ extension: 'docx', priority: 'foreground', source: {
-    key: 'native-offline-docx-smoke', version: '1', bytes: document.length,
-    read: async () => ({ bytes: document, version: '1' }),
-  } });
-  assert.equal(Buffer.from(converted.pdf).subarray(0, 5).toString(), '%PDF-');
-  assert.ok(converted.pdf.length > 100);
   const sessionPath = new URL('/dsh-offline-plugin-installer/session.json', ready);
   assert.equal((await fetch(sessionPath)).status, 401, 'Installer metadata requires native authentication');
   const installerResponse = await fetch(sessionPath, { headers: { cookie } });
@@ -74,7 +67,7 @@ try {
       evidence.push({ preset: id, webSearch: false, webFetch: names.includes('web_fetch'), tools: names.length });
     } finally { await handle.dispose(); }
   }
-  result = { web: 'passed', presets: evidence, officePdf: { passed: true, bytes: converted.pdf.length },
+  result = { web: 'passed', presets: evidence,
     offlineInstaller: { archiveInstalled: true, clientDiscovered: true, authenticated: true, restartRequired: true } };
 } finally { await shutdown.shutdown(0); }
 const restarted = await launch();

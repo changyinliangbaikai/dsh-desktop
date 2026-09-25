@@ -8,6 +8,7 @@ packaging/plugins/*
 !packaging/plugins/README.md
 !packaging/plugins/dsh-offline-plugin-installer-0.1.3.tgz
 !packaging/plugins/dsh-offline-plugin-installer-0.2.0.tgz
+!packaging/plugins/dsh-offline-plugin-installer-0.3.0.tgz
 *.log
 *.tsbuildinfo
 .DS_Store

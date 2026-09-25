@@ -1,13 +1,32 @@
-# Native Desktop build boundary
+# Native desktop candidate
 
-The pinned upstream source and compiled main.js remain unchanged. Dsh-Desktop owns a small Electron entry that registers Windows tray visibility handlers, then imports the original native entry before readiness. It identifies only the main application navigation, excludes dialogs, never intercepts an explicit quit, and delegates Host shutdown to the native before-quit sequence. If tray creation fails, normal window close remains available.
+The candidate pins Harness 0.1.7-rc.2 at 477b4f420553e8a52c2fbccc464d7561b239c443.
+The upstream checkout, compiled native main.js and Host remain byte-identical.
+Upstream now owns Windows tray behavior, its first-close notice, explicit quit
+confirmation, complete Office package unpacking, and engine resolution. The
+previous downstream native entry and tray observer are retained as historical
+source but are not shipped or loaded in this candidate.
 
-The complete runtime is installed under resources/app/dsh on the real filesystem, with ASAR disabled. LibreOfficeKit uses spawn and native filesystem reads; unpacking only EXE/DLL files leaves configuration resources unavailable and does not resolve virtual executable paths. After electron-builder's metadata cleanup, the sealed runtime is restored byte-for-byte. Final verification checks the whole inventory and converts an actual DOCX with the final executable.
+Dsh-Desktop uses upstream ASAR selection and unpack flags. It restores the sealed
+DSH bytes after electron-builder metadata cleanup without changing file selection
+or unpack flags, then inventories every final file. Upstream's final-layout smoke
+boots the real Host, converts DOCX/XLSX/PPTX and exercises the standalone Office
+CLI. Separate downstream gates install the embedded offline fixture with bundled
+pnpm, check restart activation, verify search defaults, and exercise the native
+window preview and close/restore/quit paths.
 
-The reviewed offline installer remains an independently buildable npm/DSH package. Its exact archive and extracted contents are staged into the application runtime; a generated Web bundle row selects the desktop Profile. The plugin owns upload validation, storage, authentication and installation. It invokes the public operation shared by dsh plugin, using the active Profile's bundled package-manager invocation with offline and ignore-scripts enforced. No native Host entry is recursively invoked as a CLI.
+The independently built offline installer 0.3.0 pins Harness 0.1.7-rc.2 and Cordis
+4.0.4. Its npm lock is resolved from an empty project and checked with npm ls.
+Older archives with exact Harness peers must be rebuilt for this candidate.
+Its source and package retain ownership of all installation behavior.
 
-Runtime deltas are limited to four search configuration resources, the Web bundle's installer row and declared dependency metadata, and the reviewed package files/archive. Native staging verifies the original inventory, applies these allowlisted changes and reseals it. The plugin's exact peers must match runtime packages. Existing upstream executable bytes cannot change.
+Only four Web Search YAML resources, the generated Web bundle installation row
+and dependency metadata, and the reviewed offline plugin archive/tree are added
+or configured. No public update feed or mandatory-update policy is embedded.
+Search defaults remain user-overridable. Offline packaging does not remove the
+model endpoint's network requirement; the native welcome screen permits skipping
+account login and configuring an intranet provider afterward.
 
-Release checks authenticate the installer routes, discover its client injection, install a self-contained archive through HTTP and bundled pnpm, and restart the Profile to verify activation. Repository checks cover tray restoration, ordinary close, explicit quit, dialogs, tray failure and session shutdown. Interactive Windows tray clicks and actual customer model connectivity remain manual gates.
-
-The accepted integration stack lock is unchanged. Automatic update feeds and mandatory-update policy metadata remain absent. Custom user patches may override search defaults. The legacy shell and its older archived installer remain historical compatibility artifacts, not the current native entry.
+The accepted workspace stack lock stays unchanged until full supported-stack
+acceptance. A candidate build does not by itself establish Windows 10 customer
+preview acceptance or repair the previously reported machine-specific failure.

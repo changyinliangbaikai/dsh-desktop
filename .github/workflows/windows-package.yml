@@ -96,7 +96,7 @@ jobs:
         id: native-cache
         uses: actions/cache/restore@v4
         with:
-          key: native-windows-2022-node24.19-pnpm11.7-v1-${{ steps.upstream.outputs.commit }}
+          key: native-windows-2022-node24.19-pnpm11.7-v2-${{ steps.upstream.outputs.commit }}
           path: |
             .artifacts/native-desktop/upstream/apps/desktop/lib
             .artifacts/native-desktop/upstream/apps/desktop/.desktop-build/targets/win-x64/dsh
@@ -161,10 +161,10 @@ jobs:
           prerelease: true
           fail_on_unmatched_files: true
           body: |
-            Native DeepSeek Harness 0.1.6-alpha.2 desktop, pinned to ddefc45fbc7f8e46dd73185e68295696d1297887.
+            Native DeepSeek Harness 0.1.7-rc.2 desktop, pinned to 477b4f420553e8a52c2fbccc464d7561b239c443.
 
-            Windows x64 unsigned pilot. Web Search is disabled in the provider and all shipped agent presets. Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.2.0 in the active Desktop Profile. Window close hides to the Windows tray; click to restore, or choose Exit from its menu. Native Host shutdown remains unchanged.
+            Windows x64 unsigned pilot. Web Search is disabled in the provider and all shipped agent presets. Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.3.0 in the active Desktop Profile. The upstream Windows tray hides the window after its first-close acknowledgement; click to restore, or choose Exit from its menu. Native Host shutdown remains unchanged.
 
-            Download the EXE and compare SHA256SUMS.txt. Build evidence and the configuration overlay hashes are attached. CI verifies the real-filesystem runtime, converts DOCX to PDF, installs an offline fixture and checks activation after restart, verifies Web Search tool registries, and exercises native window close/restore/quit. Interactive Windows installation and intranet model connectivity still require testing. Back up existing Harness data before testing; data-format downgrade is not guaranteed.
+            Download the EXE and compare SHA256SUMS.txt. Build evidence and the configuration overlay hashes are attached. CI verifies the sealed ASAR runtime and complete native unpacking, converts DOCX/XLSX/PPTX to PDF and exercises the standalone Office CLI, installs an offline fixture and checks activation after restart, verifies Web Search tool registries, and exercises native window close/restore/quit. Interactive Windows installation and intranet model connectivity still require testing. Back up existing Harness data before testing; data-format downgrade is not guaranteed.
           files: |
             release-files/*

@@ -2,18 +2,18 @@
 
 [中文](README.zh-CN.md)
 
-This branch builds the **native DeepSeek Harness Electron desktop application**, pinned to **0.1.6-alpha.2**, commit `ddefc45fbc7f8e46dd73185e68295696d1297887`. Dsh-Desktop owns the build orchestration and intranet packaging defaults. It no longer packages its legacy Electron shell.
+This branch builds the **native DeepSeek Harness Electron desktop application**, pinned to **0.1.7-rc.2**, commit `477b4f420553e8a52c2fbccc464d7561b239c443`. Dsh-Desktop owns the build orchestration and intranet packaging defaults. It no longer packages its legacy Electron shell.
 
-The downstream release version is **0.3.0-native.2**. The application and its Harness runtime retain the identical upstream version **0.1.6-alpha.2**. This is an unsigned Windows x64 pilot release, installed separately as **Harness Desktop Intranet**.
+The downstream release version is **0.4.0-native.1**. The application and its Harness runtime retain the identical upstream version **0.1.7-rc.2**. This is an unsigned Windows x64 pilot release, installed separately as **Harness Desktop Intranet**.
 
 ## Intranet defaults
 
 - The DeepSeek Web Search provider is disabled. The `standard`, `ptc`, and `cordis` agent presets explicitly set `tool-web.config.search: false`; `minimal` already has no web tools. New sessions do not advertise `web_search`.
 - `web_fetch`, the model endpoint, native permissions, plugin management and Office capabilities retain their upstream behavior. Disabling search is a default configuration, not a network sandbox. User-authored presets and profile overrides remain possible.
 - Automatic update feeds and the public mandatory-update policy are omitted from package metadata. Install future pilot versions manually from this repository's GitHub Releases.
-- Windows close hides the main window to the notification-area tray. Left-click restores it; the tray menu offers Open window and Exit. Exit delegates to native Host shutdown.
-- Offline installer `0.2.0` is embedded as a DSH package, available in Settings → Plugins → Offline install. It uses the active Desktop Profile and bundled pnpm with network and lifecycle scripts disabled; quit through the tray and relaunch to activate installed plugins. Older installer/plugin archives targeting Harness 0.1.2-rc.1 must be rebuilt for 0.1.6-alpha.2.
-- The runtime is shipped as a real directory, including the complete native LibreOffice engine. This fixes Office conversion attempting to spawn an ASAR virtual path. No system Office installation or engine download is required.
+- The upstream Windows tray hides the main window on close after its one-time confirmation. Left-click restores it; the tray menu offers Open window and Exit. Exit delegates to native Host shutdown.
+- Offline installer `0.3.0` is embedded as a DSH package, available in Settings → Plugins → Offline install. It uses the active Desktop Profile and bundled pnpm with network and lifecycle scripts disabled; quit through the tray and relaunch to activate installed plugins. Older installer/plugin archives targeting Harness 0.1.6-alpha.2 or earlier must be rebuilt for 0.1.7-rc.2.
+- The runtime uses upstream ASAR packaging with complete Office package unpacking and LibreOffice Kit 0.1.1. No system Office installation or engine download is required.
 - Native Desktop uses `$DSH_HOME/profiles/desktop`. It may share supported Harness user data with the CLI. Back up existing data before testing a newer Harness generation; downgrades of session formats are not promised.
 
 ## Build and release
@@ -40,9 +40,9 @@ pnpm run pack:win
 pnpm run native:verify
 ```
 
-`native:stage` invokes upstream's native preparation. `native:overlay` configures search, embeds the byte-reproduced offline package, adds its Web bundle row and reseals the runtime. Existing upstream executable bytes remain unchanged. A downstream entry observes Electron window events for tray behavior before importing native main.js. Packaging restores the sealed runtime after dependency metadata cleanup.
+`native:stage` invokes upstream's native preparation. `native:overlay` configures search, embeds the byte-reproduced offline package, adds its Web bundle row and reseals the runtime. Existing upstream executable bytes remain unchanged. The original native entry now owns the tray; the previous downstream tray entry is not shipped. Packaging restores the sealed runtime after dependency metadata cleanup.
 
-The Windows workflow checks all final runtime files, native main.js, downstream entry and tray icon. It starts the final executable against the real runtime, converts a DOCX to PDF, verifies authenticated offline-install routes and client discovery, installs a fixture archive with bundled pnpm, and verifies activation after restart. A matching version tag or manual `publish` run publishes only after these gates pass.
+The Windows workflow checks all final runtime files, native main.js and the upstream tray icon. It starts the final executable against the real runtime, runs upstream DOCX/XLSX/PPTX and standalone Office CLI acceptance, verifies authenticated offline-install routes and client discovery, installs a fixture archive with bundled pnpm, and verifies activation after restart. A matching version tag or manual `publish` run publishes only after these gates pass.
 
 ## Validation and scope
 

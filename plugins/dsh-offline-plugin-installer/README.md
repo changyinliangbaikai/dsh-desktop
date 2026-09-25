@@ -10,20 +10,20 @@ without reimplementing its behavior.
 
 ## Supported stack
 
-- DeepSeek Harness `0.1.6-alpha.2`
-- Cordis `4.0.2`
+- DeepSeek Harness `0.1.7-rc.2`
+- Cordis `4.0.4`
 - Node `^22.19.0 || >=24.0.0`
 
 All DSH and Cordis peer dependencies are exact. A different Harness baseline requires a new compatible plugin release and assembled-profile verification.
 
-Version `0.2.0` targets Harness `0.1.6-alpha.2`. Archives declaring older exact DSH peers must be rebuilt. No installer-storage migration is required. The configured Profile must match the active launcher Profile. Default installation uses the published `dsh-plugin-manager/operations` API shared by the official CLI, including its Profile lock and bundle reconciliation. Native Desktop supplies its own pnpm invocation through `profileContext`; no PATH pnpm or recursive Desktop Host launch is required. Both routes also enforce the Host connection's authentication before the existing loopback/token checks.
+Version `0.3.0` targets Harness `0.1.7-rc.2`. Archives declaring older exact DSH peers must be rebuilt. No installer-storage migration is required. The configured Profile must match the active launcher Profile. Default installation uses the published `dsh-plugin-manager/operations` API shared by the official CLI, including its Profile lock and bundle reconciliation. Native Desktop supplies its own pnpm invocation through `profileContext`; no PATH pnpm or recursive Desktop Host launch is required. Both routes also enforce the Host connection's authentication before the existing loopback/token checks.
 
 ## Bootstrap installation
 
 The installer itself must be present in the Profile before its page can be used. Install a reviewed release archive through the official CLI, then restart the Profile:
 
 ```sh
-dsh plugin --profile web add ./dsh-offline-plugin-installer-0.2.0.tgz
+dsh plugin --profile web add ./dsh-offline-plugin-installer-0.3.0.tgz
 ```
 
 Harness Desktop can embed and seed this one reviewed archive during runtime staging. Once present, later offline plugin packages are installed from the page without a terminal.
@@ -48,7 +48,7 @@ The uploaded tarball must:
 - declare a valid lower-case npm package name, semantic version, Node engine range, Host `main`, `exports["."]`, and `dsh.bundle.patch`;
 - contain the declared Host entry and patch file;
 - expose `exports["./client"]` when it declares `dsh.client`;
-- require Cordis `4.0.2` and every declared `@deepseek-ai/dsh-*` peer at `0.1.6-alpha.2` exactly;
+- require Cordis `4.0.4` and every declared `@deepseek-ai/dsh-*` peer at `0.1.7-rc.2` exactly;
 - contain no absolute/traversal paths, duplicate entries, links, device entries, or `preinstall`/`install`/`postinstall` scripts;
 - remain within the configured compressed bytes, expanded bytes, and entry-count ceilings.
 
@@ -70,8 +70,8 @@ Installation always passes `--offline --ignore-scripts --save-exact`. A self-con
 | `maxStoredBytes` | 2 GiB | Retained plus incoming archive ceiling |
 | `installTimeoutMs` | 300,000 | DSH CLI deadline |
 | `maxCliOutputBytes` | 65,536 | Per-stream Host-only diagnostic tail |
-| `expectedHarnessVersion` | `0.1.6-alpha.2` | Exact accepted DSH peer version |
-| `expectedCordisVersion` | `4.0.2` | Exact accepted Cordis peer version |
+| `expectedHarnessVersion` | `0.1.7-rc.2` | Exact accepted DSH peer version |
+| `expectedCordisVersion` | `4.0.4` | Exact accepted Cordis peer version |
 | `allowedPackagePrefixes` | `[]` | Optional package-name prefix allowlist |
 
 For a custom Profile, restate the entire config row and change `profile`; leaving the package default at `web` would install into the wrong Profile.

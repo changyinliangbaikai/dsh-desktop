@@ -1,6 +1,6 @@
 {
   "name": "dsh-windows-desktop",
-  "version": "0.3.0-native.2",
+  "version": "0.4.0-native.1",
   "private": true,
   "type": "module",
   "description": "Pinned native DeepSeek Harness desktop builds with intranet search defaults",

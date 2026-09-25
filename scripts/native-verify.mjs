@@ -2,26 +2,26 @@
 import assert from 'node:assert/strict';
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
+import { createRequire } from 'node:module';
+import * as asar from '@electron/asar';
 import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { readCordisConfiguration } from '../dist/native/intranet.js';
+import { archivePath } from '../dist/native/archive.js';
 import { app, artifacts, pin, release, repository, target, verifyUpstream } from './native-common.mjs';
 import { smokeNativeWindow } from './native-gui-smoke.mjs';
 
 verifyUpstream();
 const unpacked = join(release, 'win-unpacked');
-const application = join(unpacked, 'resources/app');
-assert.ok(!existsSync(join(unpacked, 'resources/app.asar')), 'Native spawn paths must not enter ASAR');
-const read = file => readFileSync(join(application, file));
+const application = join(unpacked, 'resources/app.asar');
+assert.ok(existsSync(application), 'Use upstream ASAR layout and complete native unpacking');
+const read = file => asar.extractFile(application, archivePath(file));
 const metadata = JSON.parse(read('package.json'));
 assert.equal(metadata.version, pin.version);
 assert.equal(metadata.dshIntranetBuild.upstream, pin.commit);
 assert.equal(metadata.dshMandatoryUpdatePolicy, undefined);
-assert.equal(metadata.main, 'downstream/native/entry.js');
-for (const file of ['native/entry.js', 'native/tray.js', 'main/window-lifecycle.js']) {
-  assert.deepEqual(read(`downstream/${file}`), readFileSync(join(repository, 'dist', file)));
-}
-assert.deepEqual(readFileSync(join(unpacked, 'resources/tray-icon.ico')), readFileSync(join(repository, 'build/icon.ico')));
+assert.equal(metadata.main, 'lib/main.js');
+assert.deepEqual(readFileSync(join(unpacked, 'resources/tray.ico')), readFileSync(join(app, 'resources/tray-windows.ico')));
 assert.ok(!existsSync(join(unpacked, 'resources/app-update.yml')));
 assert.deepEqual(read('lib/main.js'), readFileSync(join(app, 'lib/main.js')));
 const inventory = JSON.parse(read('dsh/desktop-runtime.json'));
@@ -53,6 +53,12 @@ assert.equal(installer.length, 1, 'Exactly one installer is required');
 const scratch = mkdtempSync(join(artifacts, 'smoke-'));
 let smoke;
 try {
+  const descriptor = join(scratch, 'desktop-runtime.json');
+  writeFileSync(descriptor, JSON.stringify(inventory));
+  const tsx = createRequire(join(app, 'package.json')).resolve('tsx/cli');
+  execFileSync(process.execPath, [tsx, join(repository, 'scripts/native-upstream-smoke.mjs'), app,
+    join(application, 'dsh'), join(unpacked, 'Harness Desktop Intranet.exe'), join(unpacked, 'resources/runtime'), descriptor],
+  { timeout: 360_000, encoding: 'utf8', maxBuffer: 16 * 1024 * 1024 });
   const output = execFileSync(join(unpacked, 'Harness Desktop Intranet.exe'), [
     '--expose-internals', join(repository, 'scripts/native-runtime-smoke.mjs'), join(application, 'dsh'), join(unpacked, 'resources/runtime'),
   ], {
@@ -73,7 +79,8 @@ writeFileSync(join(release, 'build-evidence.json'), JSON.stringify({
   upstream: pin, shell: 'byte-identical native main.js', signing: 'unsigned',
   verifiedRuntimeFiles: inventory.files.length,
   automaticUpdates: false, mandatoryUpdatePolicy: false, smoke,
-  runtimeLayout: 'real-filesystem', nativeTray: 'downstream entry; native Host lifecycle retained',
+  runtimeLayout: 'upstream ASAR with complete native/Office unpacking', nativeTray: 'upstream native tray and quit lifecycle',
+  officeFinalLayout: 'upstream DOCX/XLSX/PPTX and standalone Office CLI acceptance passed',
   windowLifecycle,
   manualWindowsAcceptance: 'pending user testing',
 }, null, 2) + '\n');
