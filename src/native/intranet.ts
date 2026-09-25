@@ -32,6 +32,10 @@ export function disableWebSearch(source: string, kind: 'base' | 'preset'): strin
     for (const value of rows) {
       if (!object(value)) throw new Error('Expected Cordis row object');
       if (Array.isArray(value.insert)) visit(value.insert);
+      if (value.name === '@deepseek-ai/dsh-agent-preset') {
+        if (!object(value.config) || !Array.isArray(value.config.plugins)) throw new Error('Unexpected preset declaration');
+        visit(value.config.plugins);
+      }
       if (value.id === 'tool-web') {
         if (value.name !== '@deepseek-ai/dsh-tool-web' || !object(value.config)) {
           throw new Error('Unexpected tool-web configuration');

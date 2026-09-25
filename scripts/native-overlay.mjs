@@ -13,7 +13,7 @@ const { verifyDesktopRuntime, writeDesktopRuntime } = await import(pathToFileURL
 const before = await verifyDesktopRuntime(runtime, pin.version, { platform: 'win32', arch: 'x64' });
 const changes = [
   ['node_modules/@deepseek-ai/dsh-base/cordis.patch.yml', 'base'],
-  ...pin.presets.map(name => [`node_modules/@deepseek-ai/dsh-agent-presets/presets/${name}/agent.cordis.yml`, 'preset']),
+  ...pin.presets.map(name => [`node_modules/@deepseek-ai/dsh-web-app/presets/${name}.patch.yml`, 'preset']),
 ];
 const hash = body => createHash('sha256').update(body).digest('hex');
 const evidence = changes.map(([file, kind]) => {

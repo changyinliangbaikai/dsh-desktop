@@ -20,6 +20,18 @@ describe('native Desktop intranet defaults', () => {
     const result = disableWebSearch(JSON.stringify([tool]), 'preset');
     expect(load(result)).toEqual([{ ...tool, config: { ...tool.config, search: false } }]);
   });
+  it('handles 0.1.7 declarative presets without changing unrelated plugin configuration', () => {
+    const rows = [{ insert: [{ id: 'preset-standard', name: '@deepseek-ai/dsh-agent-preset', config: {
+      id: 'standard', order: 1, plugins: [tool, { id: 'other', config: { search: true } }],
+    } }] }];
+    const output = disableWebSearch(JSON.stringify(rows), 'preset');
+    const value = load(output) as typeof rows;
+    expect(value[0]?.insert[0]?.config.plugins).toEqual([
+      { ...tool, config: { ...tool.config, search: false } }, { id: 'other', config: { search: true } },
+    ]);
+    expect(disableWebSearch(output, 'preset')).toBe(output);
+    expect(() => disableWebSearch('[{"name":"@deepseek-ai/dsh-agent-preset","config":{}}]', 'preset')).toThrow('preset declaration');
+  });
   it('preserves unevaluated Cordis expressions and rejects empty expression tags', () => {
     const source = '- id: shell\n  disabled: !!js process.platform !== "win32"\n- id: tool-web\n  name: "@deepseek-ai/dsh-tool-web"\n  config:\n    fetch: true\n';
     const before = readCordisConfiguration(source) as unknown[];

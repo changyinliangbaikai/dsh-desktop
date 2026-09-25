@@ -54,6 +54,7 @@ try {
   assert.equal(ctx.get('desktopOfflineSmoke'), undefined, 'Installation must not claim hot activation');
   const presets = await ctx.agentPresets.list();
   assert.deepEqual(presets.map(preset => preset.id).sort(), ['cordis', 'minimal', 'ptc', 'standard']);
+  assert.ok(presets.every(preset => preset.broken === undefined), 'Every shipped preset must activate');
   const evidence = [];
   for (const id of ['standard', 'ptc', 'cordis', 'minimal']) {
     const handle = await ctx.agents.create({

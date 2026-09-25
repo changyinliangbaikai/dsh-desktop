@@ -105,6 +105,9 @@ jobs:
       - name: Prepare native desktop and smoke its runtime
         if: steps.native-cache.outputs.cache-hit != 'true'
         run: pnpm run native:stage
+      - name: Build upstream acceptance dependencies for a cached runtime
+        if: steps.native-cache.outputs.cache-hit == 'true'
+        run: pnpm --dir ../.artifacts/native-desktop/upstream run build:official
       - name: Cache verified unmodified native preparation
         if: steps.native-cache.outputs.cache-hit != 'true'
         uses: actions/cache/save@v4

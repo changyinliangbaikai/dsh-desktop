@@ -44,7 +44,7 @@ for (const { file, sha256 } of overlay.embeddedPlugin.files) {
 for (const { file, sha256 } of overlay.files) {
   assert.equal(createHash('sha256').update(read(`dsh/${file}`)).digest('hex'), sha256);
   const rows = readCordisConfiguration(read(`dsh/${file}`).toString());
-  const flat = rows.flatMap(row => row.insert ?? [row]);
+  const flat = rows.flatMap(row => row.insert ?? [row]).flatMap(row => row.name === '@deepseek-ai/dsh-agent-preset' ? row.config.plugins : [row]);
   assert.equal(flat.find(row => row.id === 'tool-web').config.search, false);
   if (file.includes('/dsh-base/')) assert.equal(flat.find(row => row.id === 'web-search-deepseek').disabled, true);
 }
