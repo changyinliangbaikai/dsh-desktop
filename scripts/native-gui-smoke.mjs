@@ -68,7 +68,8 @@ export async function smokeNativeWindow(executable, artifacts) {
     await until(async () => {
       const welcome = `${windows}.find(w => w.webContents.getURL().endsWith('/renderer/welcome.html'))`;
       if (await evaluate(`Boolean(${welcome}?.isVisible())`)) {
-        await evaluate(`${welcome}.webContents.executeJavaScript('window.dshWelcome.skip()')`, 90000);
+        // The owning renderer is destroyed as soon as skip opens the workspace.
+        await evaluate(`${welcome}.webContents.executeJavaScript('void window.dshWelcome.skip(); true')`);
       }
       return evaluate(`Boolean(${primary}?.isVisible())`);
     }, 'visible application window after offline welcome skip');
