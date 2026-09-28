@@ -18,5 +18,16 @@
       "profile": "desktop"
     }
   ],
-  "sourceStatus": "unreleased-snapshot"
+  "sourceStatus": "unreleased-snapshot",
+  "officeKit": {
+    "version": "0.1.2",
+    "integrity": "sha512-PM3GtAr8/nG7mY22yoYQgRTfkhzQ72v1sDME/46I/Kl7S4+yOFYC1h0hRT8JL9p9vjdEwXW9icdhUQK0QPz+YQ==",
+    "entrySha256": "329f6f43754fd57b3daa55fabb20fdfdabe547dc2b0c919f5eaa4433ee20590e",
+    "windowsEngine": {
+      "name": "@deepseek-ai/libreoffice-kit-win32-x64",
+      "version": "0.1.2",
+      "integrity": "sha512-EUuTMnFF404uVVZz0j2oAoHY0Xhobdg0jChUUm74sudwaqxTM9rvgUYEWbeJd95oVjIParMdsb4hLdAhZ10BIw==",
+      "executableSha256": "da8bdfbffc27b16193935213fd7134f6fbdf7b2f215c54ce2163aedad842c61a"
+    }
+  }
 }

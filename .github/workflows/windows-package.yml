@@ -234,7 +234,7 @@ jobs:
 
             Windows Office conversion requires the x64 Microsoft Visual C++ v14 Redistributable, installed separately from Microsoft before using a clean offline PC. The hosted runner already has this prerequisite; its DLL versions are attached in prerequisite-evidence.json.
 
-            Product usage analytics collection is disabled. Office Kit remains 0.1.1; rebuilding alone does not establish a customer preview fix. The diagnostic ZIP converts bundled English/Chinese filename fixtures and records redacted errors without reading customer documents.
+            Product usage analytics collection is disabled. Office Kit and Windows engine 0.1.2 include the published Windows extended-path normalization fix; exact entry/engine hashes are checked. Customer Windows 10 preview still requires confirmation. The diagnostic ZIP converts bundled English/Chinese filename fixtures and records redacted errors without reading customer documents.
 
             Download the EXE and compare SHA256SUMS.txt. Build evidence and the configuration overlay hashes are attached. CI verifies the sealed ASAR runtime and complete native unpacking, converts DOCX/XLSX/PPTX to PDF and exercises the standalone Office CLI, installs an offline fixture and checks activation after restart, verifies Web Search tool registries, and exercises native window close/restore/quit. Interactive Windows installation and intranet model connectivity still require testing. Back up existing Harness data before testing; data-format downgrade is not guaranteed.
           files: |

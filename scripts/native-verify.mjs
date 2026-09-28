@@ -34,6 +34,13 @@ for (const file of inventory.files) {
   assert.equal(body.length, file.bytes, file.path);
   assert.equal(createHash('sha256').update(body).digest('hex'), file.sha256, file.path);
 }
+// The upstream preparation resolves a fresh production graph. Prove that it
+// selected the reviewed Windows path fix, rather than inferring from its range.
+const office = pin.officeKit;
+assert.equal(JSON.parse(read('dsh/node_modules/@deepseek-ai/libreoffice-kit/package.json')).version, office.version);
+assert.equal(createHash('sha256').update(read('dsh/node_modules/@deepseek-ai/libreoffice-kit/lib/index.js')).digest('hex'), office.entrySha256);
+assert.equal(JSON.parse(read(`dsh/node_modules/${office.windowsEngine.name}/package.json`)).version, office.windowsEngine.version);
+assert.equal(createHash('sha256').update(read(`dsh/node_modules/${office.windowsEngine.name}/bin/libreoffice-kit.exe`)).digest('hex'), office.windowsEngine.executableSha256);
 const overlay = JSON.parse(readFileSync(join(target, 'intranet-overlay.json')));
 const embedded = pin.embeddedPlugins[0];
 assert.equal(overlay.embeddedPlugin.integrity, embedded.integrity);
@@ -81,6 +88,7 @@ writeFileSync(join(release, 'build-evidence.json'), JSON.stringify({
   verifiedRuntimeFiles: inventory.files.length,
   automaticUpdates: false, mandatoryUpdatePolicy: false, productAnalytics: false, smoke,
   runtimeLayout: 'upstream ASAR with complete native/Office unpacking', nativeTray: 'upstream native tray and quit lifecycle',
+  officeKit: office,
   officeFinalLayout: 'upstream DOCX/XLSX/PPTX and standalone Office CLI acceptance passed',
   windowLifecycle,
   manualWindowsAcceptance: 'pending user testing',

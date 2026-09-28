@@ -6,7 +6,7 @@ This branch builds the **native DeepSeek Harness Electron desktop application**,
 
 The downstream release version is **0.4.0-native.2**. The application and its Harness runtime retain the identical upstream version **0.1.7-rc.2**. This is an unsigned Windows x64 pilot release, installed separately as **Harness Desktop Intranet**.
 
-This build pins an unreleased upstream snapshot after the 0.1.7-rc.2 tag. The product version is unchanged, but the source commit and installer filename identify this snapshot. LibreOffice Kit remains 0.1.1; a customer preview fix is not inferred from rebuilding alone.
+This build pins an unreleased upstream snapshot after the 0.1.7-rc.2 tag. The product version is unchanged, but the source commit and installer filename identify this snapshot. The production graph resolves LibreOffice Kit 0.1.2 and Windows engine 0.1.2, whose published payload includes a Windows extended-path normalization fix. Packaging checks their versions and exact entry/engine hashes. Customer Windows 10 preview still requires confirmation.
 
 ## Intranet defaults
 
@@ -16,7 +16,7 @@ This build pins an unreleased upstream snapshot after the 0.1.7-rc.2 tag. The pr
 - Automatic update feeds and the public mandatory-update policy are omitted from package metadata. Install future pilot versions manually from this repository's GitHub Releases.
 - The upstream Windows tray hides the main window on close after its one-time confirmation. Left-click restores it; the tray menu offers Open window and Exit. Exit delegates to native Host shutdown.
 - Offline installer `0.3.0` is embedded as a DSH package, available in Settings → Plugins → Offline install. It uses the active Desktop Profile and bundled pnpm with network and lifecycle scripts disabled; quit through the tray and relaunch to activate installed plugins. Older installer/plugin archives targeting Harness 0.1.6-alpha.2 or earlier must be rebuilt for 0.1.7-rc.2.
-- The runtime uses upstream ASAR packaging with complete Office package unpacking and LibreOffice Kit 0.1.1. No system Office installation or engine download is required.
+- The runtime uses upstream ASAR packaging with complete Office package unpacking and LibreOffice Kit 0.1.2. No system Office installation or engine download is required.
 - Windows Office conversion also requires the x64 Microsoft Visual C++ v14 Redistributable. The upstream kit does not bundle it. Prepare the [Microsoft offline runtime installer](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) before transferring the app to a clean intranet PC; install the runtime first. Hosted build runners already contain development runtimes and do not prove this prerequisite is present on a customer's Windows 10 PC.
 - Native Desktop uses `$DSH_HOME/profiles/desktop`. It may share supported Harness user data with the CLI. Back up existing data before testing a newer Harness generation; downgrades of session formats are not promised.
 

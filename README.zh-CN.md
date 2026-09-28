@@ -4,11 +4,11 @@
 
 此分支使用固定的 DSH 原生桌面客户端 **0.1.7-rc.2**，上游提交 `21638c56315ae6a2b552d6091945d3144c9af32e`。下游测试版本 **0.4.0-native.2**，Windows x64，未签名。上游源码及原生 main.js 保持不变。
 
-本次固定的是 `0.1.7-rc.2` 标签之后的未发布上游快照，产品版本号未变，通过提交号和独立安装包文件名区分。LibreOffice Kit 仍为 0.1.1，不能仅凭重构建就认定客户的预览故障已修复。
+本次固定的是 `0.1.7-rc.2` 标签之后的未发布上游快照，产品版本号未变，通过提交号和独立安装包文件名区分。运行时依赖解析为 LibreOffice Kit 0.1.2 和 Windows 引擎 0.1.2，其发布包包含 Windows 扩展路径规范化修复；打包时核对版本及入口/引擎文件哈希。客户 Win10 的实际预览仍需确认。
 
 ## 本版行为
 
-- 采用上游 ASAR 打包及完整 Office 依赖解包方式，LibreOffice Kit 升至 0.1.1。无需运行时下载引擎或另外安装 Office。
+- 采用上游 ASAR 打包及完整 Office 依赖解包方式，LibreOffice Kit 升至 0.1.2。无需运行时下载引擎或另外安装 Office。
 - Windows 的 Office 转换还依赖 x64 Microsoft Visual C++ v14 运行库，上游转换组件未捆绑它。干净内网电脑需提前从[微软官方下载页](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)准备离线安装程序，并先安装运行库。构建机自带开发运行库，不能据此认定客户 Win10 已满足此条件。
 - 使用上游原生托盘，首次关闭确认后，Windows 关闭按钮隐藏窗口到右下角托盘。左键点击恢复窗口；右键菜单可打开窗口或退出。退出仍由原生客户端清理 Host 和子进程。
 - 内置独立插件 `dsh-offline-plugin-installer@0.3.0`，入口为“设置 → 插件 → 离线安装”。使用当前 desktop Profile 和客户端自带 pnpm，禁用联网与安装脚本。安装后需从托盘选择退出，再重新启动才能加载；仅关闭窗口不会重启。
