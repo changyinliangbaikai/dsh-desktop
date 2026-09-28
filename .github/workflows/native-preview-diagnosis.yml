@@ -64,7 +64,7 @@ jobs:
           powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $kit 'diagnose-office.ps1') -Application (Join-Path $env:PREVIEW_DIAG_APP 'Harness Desktop Intranet.exe')
           if ($LASTEXITCODE -ne 0) { throw 'Support diagnostic failed' }
           $report = Get-Content (Join-Path $kit 'diagnostic-result.json') | ConvertFrom-Json
-          if ($report.checks.resources.failures.Count -ne 0 -or $report.checks.engineResolution -ne 'passed' -or $report.checks.conversion.passed -ne $true) { throw 'Installed Office probe did not pass' }
+          if ($report.checks.resources.failures.Count -ne 0 -or $report.checks.resources.checked -le 0 -or $report.checks.defaultConversion.passed -ne $true -or $report.checks.unicodeFilename.passed -ne $true) { throw 'Installed Office probe did not pass' }
           $report | ConvertTo-Json -Depth 8
           Remove-Item (Join-Path $kit 'diagnostic-result.json')
           Compress-Archive -Path "$kit/*" -DestinationPath (Join-Path (Split-Path $kit) 'Dsh-Office-Diagnostics-native2.zip')
