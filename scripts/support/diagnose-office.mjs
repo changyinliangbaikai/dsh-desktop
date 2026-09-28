@@ -32,12 +32,14 @@ try {
     const folder = join(scratch, name); mkdirSync(folder);
     report.checks[name] = { state: 'running' }; save();
     try {
-      converter = await createConverter({ timeoutMs: 60000, ...options });
+      converter = await createConverter({ timeoutMs: 60000, maxOutputBytes: 100 * 1024 * 1024, maxImageResolution: 192, ...options });
       const inputPath = join(folder, filename); const outputPath = join(folder, 'preview.pdf');
       copyFileSync(join(here, 'preview.docx'), inputPath);
       await converter.render({ inputPath, outputPath });
       const pdf = readFileSync(outputPath);
-      report.checks[name] = { passed: pdf.subarray(0, 5).toString() === '%PDF-', bytes: pdf.length };
+      const header = /^%PDF-\d\.\d/u.test(pdf.subarray(0, 8).toString('ascii'));
+      const eof = pdf.subarray(-1024).toString('ascii').trimEnd().endsWith('%%EOF');
+      report.checks[name] = { passed: header && eof, bytes: pdf.length, validHeader: header, completePdf: eof };
     } catch (error) { report.checks[name] = { passed: false, error: diagnosticErrors(error) }; }
     finally {
       try { await converter?.dispose(); } catch (error) { report.cleanupError = diagnosticErrors(error); }
