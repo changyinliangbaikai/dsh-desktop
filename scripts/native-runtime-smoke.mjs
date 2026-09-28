@@ -7,6 +7,7 @@ import { join, delimiter } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
 
 const root = process.argv[2];
+process.env.DSH_CLIENT_VERSION = JSON.parse(readFileSync(join(root, 'desktop-runtime.json'), 'utf8')).release.version;
 const runtimeRequire = createRequire(join(root, 'package.json'));
 const fromRuntime = name => import(pathToFileURL(runtimeRequire.resolve(name)).href);
 const { initProfile, PROFILE_TEMPLATES, loadProfileDirectory, loadLayeredEnv } = await fromRuntime('@deepseek-ai/dsh-app-boot');
@@ -53,6 +54,7 @@ try {
   assert.equal(installed.restartRequired, true);
   assert.equal(ctx.get('desktopOfflineSmoke'), undefined, 'Installation must not claim hot activation');
   const presets = await ctx.agentPresets.list();
+  assert.equal(ctx.productAnalytics.enabled(), false, 'Intranet Desktop must not collect product analytics');
   assert.deepEqual(presets.map(preset => preset.id).sort(), ['cordis', 'minimal', 'ptc', 'standard']);
   assert.ok(presets.every(preset => preset.broken === undefined), 'Every shipped preset must activate');
   const evidence = [];

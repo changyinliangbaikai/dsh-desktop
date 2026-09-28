@@ -58,3 +58,17 @@ export function disableWebSearch(source: string, kind: 'base' | 'preset'): strin
   }
   return dump(document, { schema, lineWidth: -1, noRefs: true, sortKeys: false });
 }
+
+/** Keep the published analytics service available while disabling event collection. */
+export function disableProductAnalytics(source: string): string {
+  const document = readCordisConfiguration(source);
+  if (!Array.isArray(document)) throw new Error('Expected Cordis row array');
+  const rows = document.flatMap(row => object(row) && Array.isArray(row.insert) ? row.insert : [row]);
+  const matches = rows.filter(row => object(row) && row.id === 'product-analytics');
+  const row: unknown = matches[0];
+  if (matches.length !== 1 || !object(row) || row.name !== '@deepseek-ai/dsh-client-product-analytics' || !object(row.config)) {
+    throw new Error('Unexpected product analytics declaration');
+  }
+  row.config.enabled = false;
+  return dump(document, { schema, lineWidth: -1, noRefs: true, sortKeys: false });
+}

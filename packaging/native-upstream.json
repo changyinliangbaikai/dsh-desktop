@@ -1,6 +1,6 @@
 {
   "repository": "https://github.com/deepseek-ai/deepseek-harness.git",
-  "commit": "477b4f420553e8a52c2fbccc464d7561b239c443",
+  "commit": "21638c56315ae6a2b552d6091945d3144c9af32e",
   "version": "0.1.7-rc.2",
   "target": "win-x64",
   "appId": "io.github.changyinliangbaikai.dsh-desktop.native",
@@ -17,5 +17,6 @@
       "integrity": "sha512-j5TVtRTnHWEcCBmhHASO4Lvf4dfefe9T8HCLT18KqGoBoNIdfrk1/KuImtptpxLMyaquFxheDLvhxesvqMsLpw==",
       "profile": "desktop"
     }
-  ]
+  ],
+  "sourceStatus": "unreleased-snapshot"
 }

@@ -5,6 +5,7 @@ import { execFileSync } from 'node:child_process';
 import { copyFileSync, existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { pin, repository } from './native-common.mjs';
+import { disableProductAnalytics } from '../dist/native/intranet.js';
 
 export function embedOfflineInstaller(runtime) {
   assert.equal(pin.embeddedPlugins.length, 1);
@@ -29,7 +30,7 @@ export function embedOfflineInstaller(runtime) {
   const file = 'node_modules/@deepseek-ai/dsh-web-app/cordis.patch.yml';
   const original = readFileSync(join(runtime, file), 'utf8');
   assert.ok(!original.includes(plugin.name));
-  const configured = original + '\n# Desktop-owned offline installation package.\n' + patch.replace('profile: web', 'profile: desktop');
+  const configured = disableProductAnalytics(original) + '\n# Desktop-owned offline installation package.\n' + patch.replace('profile: web', 'profile: desktop');
   writeFileSync(join(runtime, file), configured);
   // The public runtime resolver traverses declared dependencies. A loose
   // node_modules directory alone is deliberately not an installation package.

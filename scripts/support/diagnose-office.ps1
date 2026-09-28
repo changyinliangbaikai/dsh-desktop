@@ -22,11 +22,18 @@ try {
   Remove-Item Env:NODE_OPTIONS -ErrorAction SilentlyContinue
   $script = Join-Path $PSScriptRoot 'diagnose-office.mjs'
   $process = Start-Process -FilePath $Application -ArgumentList @('"' + $script + '"') -PassThru
-  if (-not $process.WaitForExit(120000)) {
+  if (-not $process.WaitForExit(300000)) {
     taskkill /PID $process.Id /T /F | Out-Null
     throw 'Diagnostic timed out.'
   }
   if (-not (Test-Path -LiteralPath $report)) { throw 'No diagnostic report was produced.' }
+  $result = Get-Content -LiteralPath $report -Raw -Encoding UTF8 | ConvertFrom-Json
+  $versions = @('vcruntime140.dll', 'vcruntime140_1.dll', 'msvcp140.dll') | ForEach-Object {
+    $dll = Join-Path $env:SystemRoot "System32/$_"
+    @{ name = $_; version = if (Test-Path -LiteralPath $dll) { (Get-Item -LiteralPath $dll).VersionInfo.FileVersion } else { 'missing' } }
+  }
+  $result | Add-Member -NotePropertyName visualCppRuntime -NotePropertyValue $versions -Force
+  $result | ConvertTo-Json -Depth 12 | Set-Content -LiteralPath $report -Encoding UTF8
   Write-Host 'Done. Please send diagnostic-result.json back for analysis.'
   exit 0
 } catch {

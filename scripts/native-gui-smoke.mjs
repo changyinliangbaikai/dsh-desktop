@@ -1,14 +1,16 @@
 /** Programmatic final-app close/restore/quit check; manual tray clicks stay separate. */
 import assert from 'node:assert/strict';
 import { execFileSync, spawn } from 'node:child_process';
-import { copyFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 
 export async function smokeNativeWindow(executable, artifacts) {
-  const home = mkdtempSync(join(artifacts, 'gui-smoke-'));
-  copyFileSync(new URL('../tests/fixtures/native/preview.docx', import.meta.url), join(home, 'preview.docx'));
-  const env = { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1' };
+  const home = mkdtempSync(join(artifacts, '中文 工作区-'));
+  const temporary = join(home, '临时 文件');
+  mkdirSync(temporary);
+  copyFileSync(new URL('../tests/fixtures/native/preview.docx', import.meta.url), join(home, '自我介绍.docx'));
+  const env = { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1', TEMP: temporary, TMP: temporary };
   delete env.ELECTRON_RUN_AS_NODE;
   delete env.NODE_OPTIONS;
   const child = spawn(executable, ['--inspect=127.0.0.1:0'], { env, stdio: ['ignore', 'pipe', 'pipe'] });
@@ -111,8 +113,8 @@ export async function smokeNativeWindow(executable, artifacts) {
     await inWindow(`document.querySelector('[data-sidebar-right-expand]').click(); true`);
     await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-guide-entry="files"]'))`), 'Files entry', 10000);
     await inWindow(`document.querySelector('[data-sidebar-right-guide-entry="files"]').click(); true`);
-    await until(() => inWindow(`Boolean([...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === 'preview.docx'))`), 'DOCX in Files', 15000);
-    await inWindow(`[...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === 'preview.docx').click(); true`);
+    await until(() => inWindow(`Boolean([...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === '自我介绍.docx'))`), 'DOCX in Files', 15000);
+    await inWindow(`[...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === '自我介绍.docx').click(); true`);
     let previewState;
     await until(async () => {
       previewState = await inWindow(`({ canvas: Boolean(document.querySelector('[data-document-preview] canvas')), failure: document.querySelector('[data-textpreview-failed]')?.textContent })`);
@@ -138,7 +140,7 @@ export async function smokeNativeWindow(executable, artifacts) {
       quitTimer = setTimeout(() => reject(new Error('Native GUI did not finish Host shutdown')), 45000);
     })]).finally(() => clearTimeout(quitTimer));
     assert.equal(outcome.code, 0, diagnostic);
-    return { closeHides: true, nativeRestore: true, nativeQuit: true, officePreviewRemote: preview, officePreviewCanvas: true, manualTrayClick: 'pending' };
+    return { closeHides: true, nativeRestore: true, nativeQuit: true, officePreviewRemote: preview, officePreviewCanvas: true, unicodeWorkspaceAndTemp: true, manualTrayClick: 'pending' };
   } catch (error) {
     await captureFailure?.().catch(() => undefined);
     throw error;

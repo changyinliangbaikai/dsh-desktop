@@ -94,7 +94,27 @@ only the included fixture in a temporary directory. It requires no network,
 external Node installation, or Office installation. It does not change the
 application, Profile, or workspace. The resulting `diagnostic-result.json`
 contains OS/component versions, relative package paths, integrity results, and
-bounded error codes; it omits error messages, stacks, absolute paths, tokens,
+bounded error codes and redacted fixture-conversion errors; it omits stacks, absolute paths, tokens,
 and user documents. Engine success does not prove that the user's active Profile
 exposes the Office service. Corruption or missing files should be investigated
 before a repair; do not automatically delete user profiles or bypass endpoint policy.
+
+## September 28 snapshot acceptance
+
+The main Windows workflow installs the new EXE with NSIS into a Unicode path,
+checks a working outbound probe, blocks the installed application and Office
+engine except loopback, and verifies the same probe is blocked. It opens the
+bundled bilingual DOCX as `自我介绍.docx` from a Unicode workspace with Unicode
+TEMP/TMP paths. It tests close/restore/quit, then runs the standalone diagnostic
+ZIP against the installed executable in Windows PowerShell 5.1. The original
+final-layout DOCX/XLSX/PPTX, CLI and offline-plugin/restart gates remain required.
+This is application-specific network blocking on Windows Server 2022, not a
+customer Windows 10 or physical air-gap claim.
+
+The diagnostic supports the previous directory layout and current ASAR layout,
+resolving the public converter from the physical unpacked package closure. It
+compares English and Chinese filenames, then (only on failure) disables font
+metadata caching and tries system fonts alone. It records CRT DLL versions and
+redacted errors using only the bundled fixture. It never reads a customer DOCX.
+The diagnostic archive and its passing sample report are separately published
+and included in SHA256SUMS.txt.

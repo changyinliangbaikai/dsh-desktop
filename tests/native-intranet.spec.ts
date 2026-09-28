@@ -1,11 +1,21 @@
 import { describe, expect, it } from 'vitest';
 import { load } from 'js-yaml';
-import { disableWebSearch, readCordisConfiguration } from '../src/native/intranet.js';
+import { disableProductAnalytics, disableWebSearch, readCordisConfiguration } from '../src/native/intranet.js';
 
 const tool = { id: 'tool-web', name: '@deepseek-ai/dsh-tool-web', config: { fetch: true, searchTimeoutMs: 60000 } };
 const provider = { id: 'web-search-deepseek', name: '@deepseek-ai/dsh-web-search-deepseek', config: { apiKeyEnv: 'DEEPSEEK_API_KEY' } };
 
 describe('native Desktop intranet defaults', () => {
+  it('disables snapshot analytics collection without disabling its RPC service', () => {
+    const row = { id: 'product-analytics', name: '@deepseek-ai/dsh-client-product-analytics', config: { enabled: true, appVersion: 'test' } };
+    expect(load(disableProductAnalytics(JSON.stringify([{ insert: [row, tool] }])))).toEqual([{ insert: [
+      { ...row, config: { ...row.config, enabled: false } }, tool,
+    ] }]);
+    expect(() => disableProductAnalytics('{}')).toThrow();
+    expect(() => disableProductAnalytics('[]')).toThrow();
+    expect(() => disableProductAnalytics(JSON.stringify([row, row]))).toThrow();
+    expect(() => disableProductAnalytics(JSON.stringify([{ ...row, config: null }]))).toThrow();
+  });
   it('disables search in base while preserving fetch and provider configuration', () => {
     const rows = [{ insert: [tool, provider, { id: 'unrelated', config: { enabled: true } }] }];
     const result = disableWebSearch(JSON.stringify(rows), 'base');

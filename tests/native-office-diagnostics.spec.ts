@@ -3,7 +3,7 @@ import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { expect, it } from 'vitest';
-import { auditOfficeResources, errorCodes } from '../src/native/office-diagnostics.js';
+import { auditOfficeResources, diagnosticErrors, errorCodes, officeDiagnosticLayout } from '../src/native/office-diagnostics.js';
 
 it('distinguishes intact, missing, and corrupted installed Office resources', () => {
   const root = mkdtempSync(join(tmpdir(), 'office-audit-'));
@@ -32,4 +32,31 @@ it('retains nested error codes without leaking document paths or credentials', (
   expect(errorCodes(null)).toEqual(['unknown']);
   const cycle: { cause?: unknown } = {}; cycle.cause = cycle;
   expect(errorCodes(cycle)).toEqual(['unknown']);
+});
+
+it('resolves native ASAR engine files from their physical package closure', () => {
+  const root = mkdtempSync(join(tmpdir(), 'office-layout-'));
+  try {
+    const executable = join(root, 'app.exe');
+    expect(officeDiagnosticLayout(executable)).toMatchObject({ asar: false, engineRuntime: join(root, 'resources/app/dsh') });
+    mkdirSync(join(root, 'resources')); writeFileSync(join(root, 'resources/app.asar'), 'archive');
+    expect(officeDiagnosticLayout(executable)).toEqual({ asar: true, application: join(root, 'resources/app.asar'),
+      runtime: join(root, 'resources/app.asar/dsh'), engineRuntime: join(root, 'resources/app.asar.unpacked/dsh') });
+  } finally { rmSync(root, { recursive: true, force: true }); }
+});
+
+it('retains native exit diagnostics while redacting paths and tokens, including aggregate causes', () => {
+  const error = new AggregateError([
+    new Error('Native helper failed (exit 3221225781). C:\\Users\\张 三\\secret.docx'),
+    new Error('Read failed: /Users/private person/fonts/font.ttf'),
+    new Error('https://localhost/?token=secret\ntoken=private'),
+    { message: 'Read failed: \\\\server\\private\\secret' },
+  ], 'Conversion failed');
+  const result = diagnosticErrors(error);
+  expect(result).toHaveLength(5);
+  expect(result[1]?.message).toContain('exit 3221225781');
+  expect(JSON.stringify(result)).not.toMatch(/张 三|secret|private person|server|token=/u);
+  const cycle: { cause?: unknown } = {}; cycle.cause = cycle;
+  expect(diagnosticErrors(cycle)).toHaveLength(1);
+  expect(diagnosticErrors(null)).toEqual([]);
 });

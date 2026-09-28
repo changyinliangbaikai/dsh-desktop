@@ -1,9 +1,41 @@
 /** Read-only checks for the installed Office runtime; no Profile or document access. */
 import { createHash } from 'node:crypto';
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
 
 const officePath = /^node_modules\/@deepseek-ai\/(?:libreoffice-kit(?:-win32-(?:x64|arm64))?|dsh-office-to-pdf)\//u;
+
+/** Support both earlier directory builds and native ASAR with a complete physical Office closure. */
+export function officeDiagnosticLayout(executable: string): { application: string; runtime: string; engineRuntime: string; asar: boolean } {
+  const resources = join(dirname(executable), 'resources');
+  const asar = existsSync(join(resources, 'app.asar'));
+  const application = join(resources, asar ? 'app.asar' : 'app');
+  return { application, runtime: join(application, 'dsh'), asar,
+    engineRuntime: join(resources, asar ? 'app.asar.unpacked' : 'app', 'dsh') };
+}
+
+/** Preserve fixture-conversion failure details while dropping URLs, local paths and credential-like values. */
+export function diagnosticErrors(error: unknown): { codes: string[]; message: string }[] {
+  const result: { codes: string[]; message: string }[] = [];
+  const seen = new Set<unknown>();
+  const queue: unknown[] = [error];
+  while (queue.length && result.length < 8) {
+    const item = queue.shift();
+    if (typeof item !== 'object' || item === null || seen.has(item)) continue;
+    seen.add(item);
+    const raw = 'message' in item && typeof item.message === 'string' ? item.message : '';
+    const message = raw.slice(0, 8192)
+      .replace(/(?:https?|file|wss?):\/\/[^\s]+/giu, '[redacted URL]')
+      .replace(/[a-z]:[\\/][^\r\n"'<>]*/giu, '[redacted path]')
+      .replace(/\\\\[^\r\n"'<>]*/gu, '[redacted path]')
+      .replace(/\/(?:Users|home|tmp|private|var|Volumes|mnt|opt)\/[^\r\n"'<>]*/gu, '[redacted path]')
+      .replace(/\b(?:token|api[_-]?key|authorization)\s*[:=]\s*[^\r\n,;]+/giu, '[redacted credential]');
+    result.push({ codes: errorCodes(item), message });
+    if ('cause' in item) queue.push(item.cause);
+    if ('errors' in item && Array.isArray(item.errors)) queue.push(...item.errors.slice(0, 8));
+  }
+  return result;
+}
 
 /** Keep only machine-independent error identifiers, never paths, stacks, or messages. */
 export function errorCodes(error: unknown): string[] {

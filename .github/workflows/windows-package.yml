@@ -47,6 +47,7 @@ jobs:
         run: |
           $pin = Get-Content packaging/native-upstream.json | ConvertFrom-Json
           "commit=$($pin.commit)" >> $env:GITHUB_OUTPUT
+          "DSH_CLIENT_VERSION=$($pin.version)" >> $env:GITHUB_ENV
           $package = Get-Content package.json | ConvertFrom-Json
           "version=$($package.version)" >> $env:GITHUB_OUTPUT
       - uses: actions/checkout@v6
@@ -131,6 +132,50 @@ jobs:
             @{ name = $_; version = (Get-Item $dll).VersionInfo.FileVersion }
           }
           @{ platform = 'Windows Server 2022 hosted runner'; visualCppRuntime = $files; bundledByInstaller = $false; cleanWindows10Acceptance = 'pending' } | ConvertTo-Json -Depth 5 | Set-Content ../.artifacts/native-desktop/release/prerequisite-evidence.json
+      - name: Install and test Unicode Office preview with application network blocked
+        shell: pwsh
+        run: |
+          $root = Join-Path (Split-Path $PWD) '.artifacts/native-desktop'
+          $release = Join-Path $root 'release'
+          $installer = @(Get-ChildItem $release -Filter '*.exe')
+          if ($installer.Count -ne 1) { throw 'Expected exactly one installer' }
+          $installed = Join-Path $root 'installed 中文'
+          $env:DSH_HOME = Join-Path $root 'installer-profile'
+          $previous = Join-Path $root 'previous-native1.exe'
+          Invoke-WebRequest 'https://github.com/changyinliangbaikai/dsh-desktop/releases/download/desktop-v0.4.0-native.1/Harness-Desktop-Intranet-0.1.7-rc.2-x64.exe' -OutFile $previous
+          if ((Get-FileHash $previous -Algorithm SHA256).Hash.ToLowerInvariant() -ne '5689e4f09bdfc64f48bc9f5a69a6d453b3dde39d101be4f0284a784f8f4ed8a0') { throw 'Previous release digest mismatch' }
+          $oldSetup = Start-Process -FilePath $previous -ArgumentList @('/S', "/D=$installed") -Wait -PassThru
+          if ($oldSetup.ExitCode -ne 0) { throw 'Previous NSIS installation failed' }
+          $setup = Start-Process -FilePath $installer[0].FullName -ArgumentList @('/S', "/D=$installed") -Wait -PassThru
+          if ($setup.ExitCode -ne 0) { throw 'NSIS installation failed' }
+          $application = (Get-Item (Join-Path $installed 'Harness Desktop Intranet.exe')).FullName
+          $engine = (Get-Item (Join-Path $installed 'resources/app.asar.unpacked/dsh/node_modules/@deepseek-ai/libreoffice-kit-win32-x64/bin/libreoffice-kit.exe')).FullName
+          $env:PREVIEW_DIAG_APP = $installed
+          node scripts/native-network-probe.mjs allowed
+          if ($LASTEXITCODE -ne 0) { throw 'Cannot establish network baseline' }
+          Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True
+          $remote = @('0.0.0.0-126.255.255.255', '128.0.0.0-255.255.255.255', '::2-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')
+          New-NetFirewallRule -DisplayName 'DSH installed app offline acceptance' -Direction Outbound -Action Block -Program $application -RemoteAddress $remote | Out-Null
+          New-NetFirewallRule -DisplayName 'DSH installed Office offline acceptance' -Direction Outbound -Action Block -Program $engine -RemoteAddress $remote | Out-Null
+          node scripts/native-network-probe.mjs blocked
+          if ($LASTEXITCODE -ne 0) { throw 'Application outbound block did not apply' }
+          $env:PREVIEW_OUTBOUND_BLOCKED = '1'
+          node scripts/native-installed-smoke.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Installed offline preview failed' }
+          node scripts/package-office-diagnostics.mjs
+          if ($LASTEXITCODE -ne 0) { throw 'Diagnostic preparation failed' }
+          $kit = Join-Path $root 'office-diagnostics'
+          powershell.exe -NoProfile -ExecutionPolicy Bypass -File (Join-Path $kit 'diagnose-office.ps1') -Application $application
+          if ($LASTEXITCODE -ne 0) { throw 'Diagnostic launcher failed' }
+          $report = Get-Content (Join-Path $kit 'diagnostic-result.json') -Raw -Encoding UTF8 | ConvertFrom-Json
+          $report | ConvertTo-Json -Depth 12
+          $report | ConvertTo-Json -Depth 12 | Set-Content (Join-Path $release 'office-diagnostic-evidence.json')
+          $pin = Get-Content packaging/native-upstream.json | ConvertFrom-Json
+          if ($report.upstreamCommit -ne $pin.commit) { throw 'Diagnostic targeted an older installation' }
+          if ($report.checks.resources.failures.Count -ne 0 -or $report.checks.resources.checked -le 0 -or $report.checks.defaultConversion.passed -ne $true -or $report.checks.unicodeFilename.passed -ne $true) { throw 'Installed Office diagnostic did not pass' }
+          Remove-Item (Join-Path $kit 'diagnostic-result.json')
+          $version = (Get-Content package.json | ConvertFrom-Json).version
+          Compress-Archive -Path "$kit/*" -DestinationPath (Join-Path $release "Dsh-Office-Diagnostics-$version.zip")
       - name: Verify PDF conversion, offline installation and native window lifecycle
         run: pnpm run native:verify
       - name: Upload verified installer and evidence
@@ -142,6 +187,7 @@ jobs:
             .artifacts/native-desktop/release/*.exe
             .artifacts/native-desktop/release/*.blockmap
             .artifacts/native-desktop/release/*.json
+            .artifacts/native-desktop/release/*.zip
             .artifacts/native-desktop/release/SHA256SUMS.txt
           if-no-files-found: error
           compression-level: 0
@@ -182,11 +228,13 @@ jobs:
           prerelease: true
           fail_on_unmatched_files: true
           body: |
-            Native DeepSeek Harness 0.1.7-rc.2 desktop, pinned to 477b4f420553e8a52c2fbccc464d7561b239c443.
+            Native DeepSeek Harness snapshot 21638c56315ae6a2b552d6091945d3144c9af32e, after the 0.1.7-rc.2 tag. The product version is unchanged; the installer filename includes the distinct downstream version.
 
             Windows x64 unsigned pilot. Web Search is disabled in the provider and all shipped agent presets. Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.3.0 in the active Desktop Profile. The upstream Windows tray hides the window after its first-close acknowledgement; click to restore, or choose Exit from its menu. Native Host shutdown remains unchanged.
 
             Windows Office conversion requires the x64 Microsoft Visual C++ v14 Redistributable, installed separately from Microsoft before using a clean offline PC. The hosted runner already has this prerequisite; its DLL versions are attached in prerequisite-evidence.json.
+
+            Product usage analytics collection is disabled. Office Kit remains 0.1.1; rebuilding alone does not establish a customer preview fix. The diagnostic ZIP converts bundled English/Chinese filename fixtures and records redacted errors without reading customer documents.
 
             Download the EXE and compare SHA256SUMS.txt. Build evidence and the configuration overlay hashes are attached. CI verifies the sealed ASAR runtime and complete native unpacking, converts DOCX/XLSX/PPTX to PDF and exercises the standalone Office CLI, installs an offline fixture and checks activation after restart, verifies Web Search tool registries, and exercises native window close/restore/quit. Interactive Windows installation and intranet model connectivity still require testing. Back up existing Harness data before testing; data-format downgrade is not guaranteed.
           files: |

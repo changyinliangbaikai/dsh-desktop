@@ -12,7 +12,7 @@ executables stay byte-identical. Desktop may preserve sealed resource bytes
 and orchestrate the original upstream packaging and acceptance commands.
 
 Generated resource changes are restricted to the four Web Search YAML files,
-the Web bundle's installation row and dependency metadata, and the exact reviewed
+the Web bundle's installation row, disabled product-analytics collection policy and dependency metadata, and the exact reviewed
 plugin archive/tree.
 Reinventory and verify every byte. Never patch upstream JavaScript, override
 private methods, or duplicate Host lifecycle and plugin reconciliation. Tray

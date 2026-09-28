@@ -19,6 +19,7 @@ const read = file => asar.extractFile(application, archivePath(file));
 const metadata = JSON.parse(read('package.json'));
 assert.equal(metadata.version, pin.version);
 assert.equal(metadata.dshIntranetBuild.upstream, pin.commit);
+assert.equal(metadata.dshIntranetBuild.productAnalytics, false);
 assert.equal(metadata.dshMandatoryUpdatePolicy, undefined);
 assert.equal(metadata.main, 'lib/main.js');
 assert.deepEqual(readFileSync(join(unpacked, 'resources/tray.ico')), readFileSync(join(app, 'resources/tray-windows.ico')));
@@ -78,13 +79,13 @@ const windowLifecycle = await smokeNativeWindow(join(unpacked, 'Harness Desktop 
 writeFileSync(join(release, 'build-evidence.json'), JSON.stringify({
   upstream: pin, shell: 'byte-identical native main.js', signing: 'unsigned',
   verifiedRuntimeFiles: inventory.files.length,
-  automaticUpdates: false, mandatoryUpdatePolicy: false, smoke,
+  automaticUpdates: false, mandatoryUpdatePolicy: false, productAnalytics: false, smoke,
   runtimeLayout: 'upstream ASAR with complete native/Office unpacking', nativeTray: 'upstream native tray and quit lifecycle',
   officeFinalLayout: 'upstream DOCX/XLSX/PPTX and standalone Office CLI acceptance passed',
   windowLifecycle,
   manualWindowsAcceptance: 'pending user testing',
 }, null, 2) + '\n');
-const files = readdirSync(release).filter(name => /\.(exe|blockmap|json)$/u.test(name)).sort();
+const files = readdirSync(release).filter(name => /\.(exe|blockmap|json|zip)$/u.test(name)).sort();
 writeFileSync(join(release, 'SHA256SUMS.txt'), files.map(name =>
   `${createHash('sha256').update(readFileSync(join(release, name))).digest('hex')}  ${name}\n`).join(''));
 mkdirSync(join(artifacts, 'evidence'), { recursive: true });

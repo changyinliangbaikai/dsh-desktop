@@ -1,6 +1,6 @@
 # Native desktop candidate
 
-The candidate pins Harness 0.1.7-rc.2 at 477b4f420553e8a52c2fbccc464d7561b239c443.
+The candidate pins Harness 0.1.7-rc.2 at 21638c56315ae6a2b552d6091945d3144c9af32e.
 The upstream checkout, compiled native main.js and Host remain byte-identical.
 Upstream now owns Windows tray behavior, its first-close notice, explicit quit
 confirmation, complete Office package unpacking, and engine resolution. The
@@ -37,3 +37,8 @@ must prepare Microsoft's offline runtime installer separately. CI records its
 runtime DLL versions so hosted-runner success is not presented as proof of a
 prerequisite-free Windows 10 installation. This is a dependency finding, not a
 confirmed diagnosis of the earlier customer failure.
+
+The September 28 source is an unreleased snapshot (same upstream product version,
+new commit). Product analytics' generated `enabled` value is false while its RPC
+service remains registered. Installer filenames include the downstream version;
+the previous compatibility tag is retained and is not moved to this snapshot.
