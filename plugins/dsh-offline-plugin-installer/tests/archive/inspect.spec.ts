@@ -4,13 +4,14 @@ import { join } from 'node:path'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { inspectArchive, type ArchivePolicy } from '../../src/archive/inspect.js'
 import { InstallerError } from '../../src/errors.js'
+import { DEFAULT_CONFIG } from '../../src/config.js'
 import { createArchive, fixtureManifest } from '../helpers/archive.js'
 
 const POLICY: ArchivePolicy = {
   maxUploadBytes: 1024 * 1024,
   maxExpandedBytes: 2 * 1024 * 1024,
   maxArchiveEntries: 100,
-  expectedHarnessVersion: '0.1.7-rc.2',
+  expectedHarnessVersion: '0.2.0-rc.1',
   expectedCordisVersion: '4.0.4',
   allowedPackagePrefixes: [],
 }
@@ -36,6 +37,23 @@ async function rejection(path: string): Promise<InstallerError> {
 }
 
 describe('inspectArchive', () => {
+  it('accepts the new Harness release and rejects the previous release with shipped defaults', async () => {
+    const defaults = {
+      ...POLICY,
+      expectedHarnessVersion: DEFAULT_CONFIG.expectedHarnessVersion,
+      expectedCordisVersion: DEFAULT_CONFIG.expectedCordisVersion,
+    }
+    const current = join(directory, 'current.tgz')
+    await createArchive(current)
+    await expect(inspectArchive(current, defaults)).resolves.toMatchObject({ name: 'dsh-fixture-plugin' })
+    const previous = join(directory, 'previous.tgz')
+    await createArchive(previous, { manifest: fixtureManifest({ peerDependencies: {
+      '@deepseek-ai/cordis': '4.0.4',
+      '@deepseek-ai/dsh-host-webserver': '0.1.7-rc.2',
+    } }) })
+    await expect(inspectArchive(previous, defaults)).rejects.toMatchObject({ code: 'PACKAGE_INCOMPATIBLE' })
+  })
+
   it('accepts one complete compatible DSH bundle and measures it', async () => {
     const path = join(directory, 'plugin.tgz')
     await createArchive(path, {
@@ -96,7 +114,7 @@ describe('inspectArchive', () => {
       manifest: fixtureManifest({
         peerDependencies: {
           '@deepseek-ai/cordis': '4.0.0',
-          '@deepseek-ai/dsh-host-webserver': '0.1.7-rc.2',
+          '@deepseek-ai/dsh-host-webserver': '0.2.0-rc.1',
         },
       }),
     })

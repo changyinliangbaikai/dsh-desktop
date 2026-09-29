@@ -1,6 +1,6 @@
 # Native desktop candidate
 
-The candidate pins Harness 0.1.7-rc.2 at 21638c56315ae6a2b552d6091945d3144c9af32e.
+The candidate pins Harness 0.2.0-rc.1 at 4878cdabd87d4041bdaff61d04c966883b9fd07a.
 The upstream checkout, compiled native main.js and Host remain byte-identical.
 Upstream now owns Windows tray behavior, its first-close notice, explicit quit
 confirmation, complete Office package unpacking, and engine resolution. The
@@ -15,14 +15,14 @@ CLI. Separate downstream gates install the embedded offline fixture with bundled
 pnpm, check restart activation, verify search defaults, and exercise the native
 window preview and close/restore/quit paths.
 
-The independently built offline installer 0.3.0 pins Harness 0.1.7-rc.2 and Cordis
+The independently built offline installer 0.4.0 pins Harness 0.2.0-rc.1 and Cordis
 4.0.4. Its npm lock is resolved from an empty project and checked with npm ls.
 Older archives with exact Harness peers must be rebuilt for this candidate.
 Its source and package retain ownership of all installation behavior.
 
-Only four Web Search YAML resources, the generated Web bundle installation row
-and dependency metadata, and the reviewed offline plugin archive/tree are added
-or configured. No public update feed or mandatory-update policy is embedded.
+Only four Web Search YAML resources, the generated Web bundle installation row,
+disabled product-analytics collection policy and dependency metadata, and the
+reviewed offline plugin archive/tree are added or configured. No public update feed or mandatory-update policy is embedded.
 Search defaults remain user-overridable. Offline packaging does not remove the
 model endpoint's network requirement; the native welcome screen permits skipping
 account login and configuring an intranet provider afterward.
@@ -38,7 +38,8 @@ runtime DLL versions so hosted-runner success is not presented as proof of a
 prerequisite-free Windows 10 installation. This is a dependency finding, not a
 confirmed diagnosis of the earlier customer failure.
 
-The September 28 source is an unreleased snapshot (same upstream product version,
-new commit). Product analytics' generated `enabled` value is false while its RPC
-service remains registered. Installer filenames include the downstream version;
-the previous compatibility tag is retained and is not moved to this snapshot.
+The September 29 build pins the published `dsh-v0.2.0-rc.1` release. Product
+analytics' generated `enabled` value is false while its RPC service remains
+registered. Installer filenames include the downstream version. The new exact
+compatibility tag is applied only after package, Profile and Desktop gates pass;
+previous compatibility tags remain unchanged.

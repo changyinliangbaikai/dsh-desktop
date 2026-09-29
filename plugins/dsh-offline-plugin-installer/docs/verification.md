@@ -8,7 +8,7 @@ Report only layers actually run.
 | Built and packed tests | Plain-Node Host import, loader-safe client bundle, tar parser bundling, packed files | Installation into a Profile |
 | Isolated Profile | Official CLI install, bundle reconciliation, Host route and Web client discovery | Desktop embedding or restart UX |
 | Restart acceptance | Installed plugin activates after a real Profile restart | Safety/functionality of arbitrary third-party packages |
-| Desktop staging | Exact installer archive and integrity embedded and seeded into managed `web` Profile | Windows installer behavior unless run on Windows |
+| Desktop staging | Exact installer archive and integrity embedded and seeded into the selected Profile (`desktop` for native Desktop) | Windows installer behavior unless run on Windows |
 | Windows/native | Process-tree termination, path handling, packaged desktop restart | Other platform matrices |
 | Manual/subjective | Drag/drop, messages, visual quality, restart instructions | Deterministic automated gates |
 

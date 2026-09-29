@@ -15,7 +15,7 @@ process.stdout.write(fs.readFileSync(path.join(path.dirname(process.execPath), '
 assert.ifError(identity.error);
 assert.equal(identity.status, 0);
 const metadata = JSON.parse(identity.stdout);
-assert.equal(metadata.dshIntranetBuild.upstream, pin.commit, 'Upgrade must replace the older same-version application');
+assert.equal(metadata.dshIntranetBuild.upstream, pin.commit, 'Upgrade must replace the previous application');
 assert.equal(metadata.dshIntranetBuild.productAnalytics, false);
 const result = await smokeNativeWindow(executable, artifacts);
 const evidence = { upstream: pin.commit, nsisInstalled: true, appAndEngineOutboundBlocked: true, result };

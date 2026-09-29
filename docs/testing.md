@@ -99,9 +99,10 @@ and user documents. Engine success does not prove that the user's active Profile
 exposes the Office service. Corruption or missing files should be investigated
 before a repair; do not automatically delete user profiles or bypass endpoint policy.
 
-## September 28 snapshot acceptance
+## Native Windows offline acceptance
 
-The main Windows workflow installs the new EXE with NSIS into a Unicode path,
+The main Windows workflow installs the immutable previous native.2 release, then
+upgrades it with the new EXE through NSIS in the same Unicode path. It
 checks a working outbound probe, blocks the installed application and Office
 engine except loopback, and verifies the same probe is blocked. It opens the
 bundled bilingual DOCX as `自我介绍.docx` from a Unicode workspace with Unicode
