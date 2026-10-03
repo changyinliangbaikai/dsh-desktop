@@ -8,6 +8,7 @@ import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdir
 import { join } from 'node:path';
 import { readCordisConfiguration } from '../dist/native/intranet.js';
 import { archivePath } from '../dist/native/archive.js';
+import { intranetExecutable, nativeCliExecutable } from '../dist/native/cli.js';
 import { app, artifacts, pin, release, repository, target, verifyUpstream } from './native-common.mjs';
 import { smokeNativeWindow } from './native-gui-smoke.mjs';
 
@@ -25,6 +26,8 @@ assert.equal(metadata.main, 'lib/main.js');
 assert.deepEqual(readFileSync(join(unpacked, 'resources/tray.ico')), readFileSync(join(app, 'resources/tray-windows.ico')));
 assert.ok(!existsSync(join(unpacked, 'resources/app-update.yml')));
 assert.deepEqual(read('lib/main.js'), readFileSync(join(app, 'lib/main.js')));
+assert.deepEqual(readFileSync(join(unpacked, nativeCliExecutable)), readFileSync(join(unpacked, intranetExecutable)));
+assert.deepEqual(readFileSync(join(unpacked, 'resources/runtime/cli/bin/dsh.cmd')), readFileSync(join(app, 'cli/dsh.cmd')));
 const inventory = JSON.parse(read('dsh/desktop-runtime.json'));
 assert.equal(inventory.release.version, pin.version);
 assert.equal(inventory.platform, 'win32');
@@ -89,6 +92,11 @@ writeFileSync(join(release, 'build-evidence.json'), JSON.stringify({
   automaticUpdates: false, mandatoryUpdatePolicy: false, productAnalytics: false, smoke,
   runtimeLayout: 'upstream ASAR with complete native/Office unpacking', nativeTray: 'upstream native tray and quit lifecycle',
   officeKit: office,
+  nativeCli: {
+    launcherUnmodified: true, executableAliasIdentical: true,
+    launcherSha256: createHash('sha256').update(readFileSync(join(unpacked, 'resources/runtime/cli/bin/dsh.cmd'))).digest('hex'),
+    executableSha256: createHash('sha256').update(readFileSync(join(unpacked, nativeCliExecutable))).digest('hex'),
+  },
   officeFinalLayout: 'upstream DOCX/XLSX/PPTX and standalone Office CLI acceptance passed',
   windowLifecycle,
   manualWindowsAcceptance: 'pending user testing',

@@ -1,6 +1,6 @@
 # Native desktop candidate
 
-The candidate pins Harness 0.2.0-rc.1 at 4878cdabd87d4041bdaff61d04c966883b9fd07a.
+The candidate pins Harness 0.2.1-alpha.1 at 5badb15009ae1756c3afe0ae0cef1faafc290ccc.
 The upstream checkout, compiled native main.js and Host remain byte-identical.
 Upstream now owns Windows tray behavior, its first-close notice, explicit quit
 confirmation, complete Office package unpacking, and engine resolution. The
@@ -15,8 +15,8 @@ CLI. Separate downstream gates install the embedded offline fixture with bundled
 pnpm, check restart activation, verify search defaults, and exercise the native
 window preview and close/restore/quit paths.
 
-The independently built offline installer 0.4.0 pins Harness 0.2.0-rc.1 and Cordis
-4.0.4. Its npm lock is resolved from an empty project and checked with npm ls.
+The independently built offline installer 0.5.0 pins Harness 0.2.1-alpha.1 and Cordis
+4.0.5-alpha.1. Its npm lock is resolved from an empty project and checked with npm ls.
 Older archives with exact Harness peers must be rebuilt for this candidate.
 Its source and package retain ownership of all installation behavior.
 
@@ -38,7 +38,7 @@ runtime DLL versions so hosted-runner success is not presented as proof of a
 prerequisite-free Windows 10 installation. This is a dependency finding, not a
 confirmed diagnosis of the earlier customer failure.
 
-The September 29 build pins the published `dsh-v0.2.0-rc.1` release. Product
+The October 3 build pins the published `dsh-v0.2.1-alpha.1` release. Product
 analytics' generated `enabled` value is false while its RPC service remains
 registered. Installer filenames include the downstream version. The new exact
 compatibility tag is applied only after package, Profile and Desktop gates pass;

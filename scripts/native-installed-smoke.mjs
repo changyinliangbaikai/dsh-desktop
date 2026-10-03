@@ -7,6 +7,7 @@ import { artifacts, release, pin } from './native-common.mjs';
 import { smokeNativeWindow } from './native-gui-smoke.mjs';
 
 assert.equal(process.env.PREVIEW_OUTBOUND_BLOCKED, '1', 'Verify the outbound probe before installed acceptance');
+assert.equal(process.env.PREVIEW_NATIVE_CLI_VERSION, pin.version, 'Installed offline dsh.cmd must report the pinned version');
 assert.ok(process.env.PREVIEW_DIAG_APP, 'Pass the installed application directory');
 const executable = join(process.env.PREVIEW_DIAG_APP, 'Harness Desktop Intranet.exe');
 const identity = spawnSync(executable, ['-e', `const fs = require('node:fs'), path = require('node:path');
@@ -18,6 +19,7 @@ const metadata = JSON.parse(identity.stdout);
 assert.equal(metadata.dshIntranetBuild.upstream, pin.commit, 'Upgrade must replace the previous application');
 assert.equal(metadata.dshIntranetBuild.productAnalytics, false);
 const result = await smokeNativeWindow(executable, artifacts);
-const evidence = { upstream: pin.commit, nsisInstalled: true, appAndEngineOutboundBlocked: true, result };
+const evidence = { upstream: pin.commit, nsisInstalled: true, appAndEngineOutboundBlocked: true,
+  nativeCliVersion: process.env.PREVIEW_NATIVE_CLI_VERSION, result };
 writeFileSync(join(release, 'installed-offline-evidence.json'), JSON.stringify(evidence, null, 2) + '\n');
 console.log(JSON.stringify(evidence));

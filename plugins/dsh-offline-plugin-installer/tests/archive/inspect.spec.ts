@@ -11,8 +11,8 @@ const POLICY: ArchivePolicy = {
   maxUploadBytes: 1024 * 1024,
   maxExpandedBytes: 2 * 1024 * 1024,
   maxArchiveEntries: 100,
-  expectedHarnessVersion: '0.2.0-rc.1',
-  expectedCordisVersion: '4.0.4',
+  expectedHarnessVersion: '0.2.1-alpha.1',
+  expectedCordisVersion: '4.0.5-alpha.1',
   allowedPackagePrefixes: [],
 }
 
@@ -37,7 +37,7 @@ async function rejection(path: string): Promise<InstallerError> {
 }
 
 describe('inspectArchive', () => {
-  it('accepts the new Harness release and rejects the previous release with shipped defaults', async () => {
+  it.each(['0.1.7-rc.2', '0.2.0-rc.1'])('accepts the new Harness release and rejects %s with shipped defaults', async previousVersion => {
     const defaults = {
       ...POLICY,
       expectedHarnessVersion: DEFAULT_CONFIG.expectedHarnessVersion,
@@ -48,8 +48,8 @@ describe('inspectArchive', () => {
     await expect(inspectArchive(current, defaults)).resolves.toMatchObject({ name: 'dsh-fixture-plugin' })
     const previous = join(directory, 'previous.tgz')
     await createArchive(previous, { manifest: fixtureManifest({ peerDependencies: {
-      '@deepseek-ai/cordis': '4.0.4',
-      '@deepseek-ai/dsh-host-webserver': '0.1.7-rc.2',
+      '@deepseek-ai/cordis': '4.0.5-alpha.1',
+      '@deepseek-ai/dsh-host-webserver': previousVersion,
     } }) })
     await expect(inspectArchive(previous, defaults)).rejects.toMatchObject({ code: 'PACKAGE_INCOMPATIBLE' })
   })
@@ -114,7 +114,7 @@ describe('inspectArchive', () => {
       manifest: fixtureManifest({
         peerDependencies: {
           '@deepseek-ai/cordis': '4.0.0',
-          '@deepseek-ai/dsh-host-webserver': '0.2.0-rc.1',
+          '@deepseek-ai/dsh-host-webserver': '0.2.1-alpha.1',
         },
       }),
     })

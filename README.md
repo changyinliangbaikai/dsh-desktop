@@ -2,11 +2,11 @@
 
 [中文](README.zh-CN.md)
 
-This branch builds the **native DeepSeek Harness Electron desktop application**, pinned to **0.2.0-rc.1**, commit `4878cdabd87d4041bdaff61d04c966883b9fd07a`. Dsh-Desktop owns the build orchestration and intranet packaging defaults. It no longer packages its legacy Electron shell.
+This branch builds the **native DeepSeek Harness Electron desktop application**, pinned to **0.2.1-alpha.1**, commit `5badb15009ae1756c3afe0ae0cef1faafc290ccc`. Dsh-Desktop owns the build orchestration and intranet packaging defaults. It no longer packages its legacy Electron shell.
 
-The downstream release version is **0.5.0-native.1**. The application and its Harness runtime retain the identical upstream version **0.2.0-rc.1**. This is an unsigned Windows x64 pilot release, installed separately as **Harness Desktop Intranet**.
+The downstream release version is **0.6.0-native.1**. The application and its Harness runtime retain the identical upstream version **0.2.1-alpha.1**. This is an unsigned Windows x64 pilot release, installed separately as **Harness Desktop Intranet**.
 
-This build pins the published upstream `dsh-v0.2.0-rc.1` tag. The offline installer is rebuilt with exact 0.2.0-rc.1 peers and a freshly resolved npm lock; archives for the previous Harness version must be rebuilt before installation. The production graph resolves LibreOffice Kit 0.1.2 and Windows engine 0.1.2, whose published payload includes a Windows extended-path normalization fix. Packaging checks their versions and exact entry/engine hashes. Customer Windows 10 preview still requires confirmation.
+This build pins the published upstream `dsh-v0.2.1-alpha.1` tag. The offline installer is rebuilt with exact 0.2.1-alpha.1 peers and a freshly resolved npm lock; archives for the previous Harness version must be rebuilt before installation. The production graph resolves LibreOffice Kit 0.1.5 and Windows engine 0.1.5, with the matching published Windows payload. Packaging checks their versions and exact entry/engine hashes. Customer Windows 10 preview still requires confirmation.
 
 ## Intranet defaults
 
@@ -15,10 +15,22 @@ This build pins the published upstream `dsh-v0.2.0-rc.1` tag. The offline instal
 - Product usage analytics collection is disabled through the generated Web configuration.
 - Automatic update feeds and the public mandatory-update policy are omitted from package metadata. Install future pilot versions manually from this repository's GitHub Releases.
 - The upstream Windows tray hides the main window on close after its one-time confirmation. Left-click restores it; the tray menu offers Open window and Exit. Exit delegates to native Host shutdown.
-- Offline installer `0.4.0` is embedded as a DSH package, available in Settings → Plugins → Offline install. It uses the active Desktop Profile and bundled pnpm with network and lifecycle scripts disabled; quit through the tray and relaunch to activate installed plugins. Older installer/plugin archives targeting Harness 0.1.7-rc.2 or earlier must be rebuilt for 0.2.0-rc.1.
-- The runtime uses upstream ASAR packaging with complete Office package unpacking and LibreOffice Kit 0.1.2. No system Office installation or engine download is required.
+- Offline installer `0.5.0` is embedded as a DSH package, available in Settings → Plugins → Offline install. It uses the active Desktop Profile and bundled pnpm with network and lifecycle scripts disabled; quit through the tray and relaunch to activate installed plugins. Older installer/plugin archives targeting Harness 0.2.0-rc.1 or earlier must be rebuilt for 0.2.1-alpha.1.
+- The runtime uses upstream ASAR packaging with complete Office package unpacking and LibreOffice Kit 0.1.5. No system Office installation or engine download is required.
 - Windows Office conversion also requires the x64 Microsoft Visual C++ v14 Redistributable. The upstream kit does not bundle it. Prepare the [Microsoft offline runtime installer](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist) before transferring the app to a clean intranet PC; install the runtime first. Hosted build runners already contain development runtimes and do not prove this prerequisite is present on a customer's Windows 10 PC.
 - Native Desktop uses `$DSH_HOME/profiles/desktop`. It may share supported Harness user data with the CLI. Back up existing data before testing a newer Harness generation; downgrades of session formats are not promised.
+
+The new upstream terminal launcher is included unchanged. A byte-identical
+`DeepSeek Harness.exe` compatibility executable supports it while the intranet
+application keeps its existing name and installation identity. CI tests the
+installed `dsh.cmd --version` with outbound traffic blocked. This adds another
+copy of the Electron executable to the installed payload.
+
+Upstream 0.2.1 removes runtime invariant plugins and `./invariant` exports.
+Custom profiles/extensions referencing these entries must be updated. Extensions
+replacing the old input-dock `stats` row must migrate to `activity` and `usage`.
+Older exact-peer plugin archives need rebuilding for Harness 0.2.1-alpha.1 and
+Cordis 4.0.5-alpha.1; no offline-installer archive-store migration is needed.
 
 ## Build and release
 
@@ -56,7 +68,7 @@ This is a candidate native stack; it does not advance the integration workspace'
 
 ## If Office preview still fails on Windows 10
 
-Download the matching `Dsh-Office-Diagnostics-0.5.0-native.1.zip` from Releases,
+Download the matching `Dsh-Office-Diagnostics-0.6.0-native.1.zip` from Releases,
 extract it into a writable directory, keep the client open, and double-click
 `diagnose-office.cmd`. Select the installed application if prompted, then send
 back `diagnostic-result.json`. This takes up to five minutes and uses only its

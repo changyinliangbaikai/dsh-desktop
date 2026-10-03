@@ -6,10 +6,13 @@ This repository is the thin Windows desktop shell for the official DeepSeek Harn
 
 The native migration uses the pinned upstream Desktop application without source edits.
 `packaging/native-upstream.json` owns the candidate and embedded-plugin pin; the
-accepted integration-stack lock is unchanged. The 0.2.0 candidate uses the upstream ASAR/Office unpacking and Windows tray.
+accepted integration-stack lock is unchanged. The 0.2.1 candidate uses the upstream ASAR/Office unpacking and Windows tray.
 The earlier downstream tray entry is not packaged. Native main.js and Host
 executables stay byte-identical. Desktop may preserve sealed resource bytes
-and orchestrate the original upstream packaging and acceptance commands.
+and orchestrate the original upstream packaging and acceptance commands. The
+upstream terminal launcher may use a byte-identical copy of the final executable
+under its fixed original filename; keep the intranet install identity and both
+upstream launcher and Host bytes unchanged.
 
 Generated resource changes are restricted to the four Web Search YAML files,
 the Web bundle's installation row, disabled product-analytics collection policy and dependency metadata, and the exact reviewed

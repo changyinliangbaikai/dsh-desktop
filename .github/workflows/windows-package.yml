@@ -141,14 +141,15 @@ jobs:
           if ($installer.Count -ne 1) { throw 'Expected exactly one installer' }
           $installed = Join-Path $root 'installed 中文'
           $env:DSH_HOME = Join-Path $root 'installer-profile'
-          $previous = Join-Path $root 'previous-native2.exe'
-          Invoke-WebRequest 'https://github.com/changyinliangbaikai/dsh-desktop/releases/download/desktop-v0.4.0-native.2/Harness-Desktop-Intranet-0.4.0-native.2-x64.exe' -OutFile $previous
-          if ((Get-FileHash $previous -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'bc94acaf8fd92a3901df2d2dbce8756d70123d7b2e54ab627e4813bf6cbec2e7') { throw 'Previous release digest mismatch' }
+          $previous = Join-Path $root 'previous-native05.exe'
+          Invoke-WebRequest 'https://github.com/changyinliangbaikai/dsh-desktop/releases/download/desktop-v0.5.0-native.1/Harness-Desktop-Intranet-0.5.0-native.1-x64.exe' -OutFile $previous
+          if ((Get-FileHash $previous -Algorithm SHA256).Hash.ToLowerInvariant() -ne '0654c91bfc79eb7f1918303b84d63a325345aab92b452385097f8c29c5bc9e49') { throw 'Previous release digest mismatch' }
           $oldSetup = Start-Process -FilePath $previous -ArgumentList @('/S', "/D=$installed") -Wait -PassThru
           if ($oldSetup.ExitCode -ne 0) { throw 'Previous NSIS installation failed' }
           $setup = Start-Process -FilePath $installer[0].FullName -ArgumentList @('/S', "/D=$installed") -Wait -PassThru
           if ($setup.ExitCode -ne 0) { throw 'NSIS installation failed' }
           $application = (Get-Item (Join-Path $installed 'Harness Desktop Intranet.exe')).FullName
+          $cliApplication = (Get-Item (Join-Path $installed 'DeepSeek Harness.exe')).FullName
           $engine = (Get-Item (Join-Path $installed 'resources/app.asar.unpacked/dsh/node_modules/@deepseek-ai/libreoffice-kit-win32-x64/bin/libreoffice-kit.exe')).FullName
           $env:PREVIEW_DIAG_APP = $installed
           node scripts/native-network-probe.mjs allowed
@@ -156,9 +157,15 @@ jobs:
           Set-NetFirewallProfile -Profile Domain,Private,Public -Enabled True
           $remote = @('0.0.0.0-126.255.255.255', '128.0.0.0-255.255.255.255', '::2-ffff:ffff:ffff:ffff:ffff:ffff:ffff:ffff')
           New-NetFirewallRule -DisplayName 'DSH installed app offline acceptance' -Direction Outbound -Action Block -Program $application -RemoteAddress $remote | Out-Null
+          New-NetFirewallRule -DisplayName 'DSH installed CLI offline acceptance' -Direction Outbound -Action Block -Program $cliApplication -RemoteAddress $remote | Out-Null
           New-NetFirewallRule -DisplayName 'DSH installed Office offline acceptance' -Direction Outbound -Action Block -Program $engine -RemoteAddress $remote | Out-Null
           node scripts/native-network-probe.mjs blocked
           if ($LASTEXITCODE -ne 0) { throw 'Application outbound block did not apply' }
+          $pin = Get-Content packaging/native-upstream.json | ConvertFrom-Json
+          $launcher = Join-Path $installed 'resources/runtime/cli/bin/dsh.cmd'
+          $cliVersion = ((& $launcher --version) | Out-String).Trim()
+          if ($LASTEXITCODE -ne 0 -or $cliVersion -ne $pin.version) { throw 'Installed native CLI version check failed' }
+          $env:PREVIEW_NATIVE_CLI_VERSION = $cliVersion
           $env:PREVIEW_OUTBOUND_BLOCKED = '1'
           node scripts/native-installed-smoke.mjs
           if ($LASTEXITCODE -ne 0) { throw 'Installed offline preview failed' }
@@ -228,14 +235,14 @@ jobs:
           prerelease: true
           fail_on_unmatched_files: true
           body: |
-            Native DeepSeek Harness 0.2.0-rc.1, published tag dsh-v0.2.0-rc.1 at 4878cdabd87d4041bdaff61d04c966883b9fd07a. Upstream source, native main.js and Host remain unchanged.
+            Native DeepSeek Harness 0.2.1-alpha.1, published tag dsh-v0.2.1-alpha.1 at 5badb15009ae1756c3afe0ae0cef1faafc290ccc. Upstream source, native main.js and Host remain unchanged.
 
-            Windows x64 unsigned pilot. Web Search is disabled in the provider and all shipped agent presets. Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.4.0 in the active Desktop Profile. The upstream Windows tray hides the window after its first-close acknowledgement; click to restore, or choose Exit from its menu. Native Host shutdown remains unchanged. Plugin archives declaring older Harness peers must be rebuilt for 0.2.0-rc.1; the embedded installer uses a freshly resolved independent npm lock.
+            Windows x64 unsigned pilot. Web Search is disabled in the provider and all shipped agent presets. Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.5.0 in the active Desktop Profile. The upstream Windows tray hides the window after its first-close acknowledgement; click to restore, or choose Exit from its menu. Native Host shutdown remains unchanged. Plugin archives declaring older Harness peers must be rebuilt for 0.2.1-alpha.1; the embedded installer uses a freshly resolved independent npm lock.
 
             Windows Office conversion requires the x64 Microsoft Visual C++ v14 Redistributable, installed separately from Microsoft before using a clean offline PC. The hosted runner already has this prerequisite; its DLL versions are attached in prerequisite-evidence.json.
 
-            Product usage analytics collection is disabled. Office Kit and Windows engine 0.1.2 include the published Windows extended-path normalization fix; exact entry/engine hashes are checked. Customer Windows 10 preview still requires confirmation. The diagnostic ZIP converts bundled English/Chinese filename fixtures and records redacted errors without reading customer documents.
+            Product usage analytics collection is disabled. Office Kit and Windows engine 0.1.5 are bundled; exact entry/engine hashes are checked. Customer Windows 10 preview still requires confirmation. The diagnostic ZIP converts bundled English/Chinese filename fixtures and records redacted errors without reading customer documents.
 
-            Download the EXE and compare SHA256SUMS.txt. Build evidence and the configuration overlay hashes are attached. CI verifies actual NSIS upgrade from native.2, Chinese installation/workspace/temporary paths and DOCX preview with application/engine outbound traffic blocked. It also verifies the sealed ASAR runtime and complete native unpacking, converts DOCX/XLSX/PPTX to PDF and exercises the standalone Office CLI, installs an offline fixture and checks activation after restart, verifies Web Search tool registries, and exercises native window close/restore/quit. Interactive Windows installation and intranet model connectivity still require testing. Back up existing Harness data before testing; data-format downgrade is not guaranteed.
+            Download the EXE and compare SHA256SUMS.txt. Build evidence and the configuration overlay hashes are attached. The unchanged upstream terminal launcher is supported by an identical executable copy under its original filename; the intranet application keeps its existing install identity. CI verifies its installed offline version command and actual NSIS upgrade from 0.5.0-native.1, Chinese installation/workspace/temporary paths and DOCX preview with application/engine outbound traffic blocked. It also verifies the sealed ASAR runtime and complete native unpacking, converts DOCX/XLSX/PPTX to PDF and exercises the standalone Office CLI, installs an offline fixture and checks activation after restart, verifies Web Search tool registries, and exercises native window close/restore/quit. Interactive Windows installation and intranet model connectivity still require testing. Back up existing Harness data before testing; data-format downgrade is not guaranteed.
           files: |
             release-files/*

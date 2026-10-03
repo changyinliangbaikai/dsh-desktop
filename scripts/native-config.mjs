@@ -4,6 +4,7 @@ import { join } from 'node:path';
 import { app, pin, release, target, repository } from './native-common.mjs';
 import { readFileSync } from 'node:fs';
 import { preserveNativeRuntime } from '../dist/native/archive.js';
+import { stageNativeCliAlias } from '../dist/native/cli.js';
 
 const { createElectronBuilderConfig } = await import(pathToFileURL(join(app, 'scripts/electron-builder-config.mjs')).href);
 const configuration = createElectronBuilderConfig({
@@ -28,5 +29,12 @@ const afterPack = configuration.afterPack;
 configuration.afterPack = async context => {
   await afterPack(context);
   await preserveNativeRuntime(join(context.appOutDir, 'resources/app.asar'), join(target, 'dsh'));
+};
+const afterSign = configuration.afterSign;
+configuration.afterSign = async context => {
+  await afterSign(context);
+  // Upstream's new dsh.cmd names DeepSeek Harness.exe. Preserve that launcher
+  // and the existing intranet install identity with a byte-identical alias.
+  stageNativeCliAlias(context.appOutDir);
 };
 export default configuration;
