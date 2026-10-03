@@ -4,6 +4,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
+import { nativeWindowExpression } from '../dist/native/gui-selector.js';
 
 export async function smokeNativeWindow(executable, artifacts) {
   const home = mkdtempSync(join(artifacts, '中文 工作区-'));
@@ -66,12 +67,12 @@ export async function smokeNativeWindow(executable, artifacts) {
     });
     const electron = "process.getBuiltinModule('module').createRequire(process.execPath)('electron')";
     const windows = `${electron}.BrowserWindow.getAllWindows()`;
-    const primary = `${windows}.find(w => w.webContents.getURL() === 'dsh-app://app/')`;
+    const primary = nativeWindowExpression(windows, 'primary');
     await until(async () => {
-      const welcome = `${windows}.find(w => w.webContents.getURL().endsWith('/renderer/welcome.html'))`;
+      const welcome = nativeWindowExpression(windows, 'welcome');
       if (await evaluate(`Boolean(${welcome}?.isVisible())`)) {
         // The owning renderer is destroyed as soon as skip opens the workspace.
-        await evaluate(`${welcome}.webContents.executeJavaScript('void window.dshWelcome.skip(); true')`);
+        await evaluate(`${welcome}?.webContents.executeJavaScript('void window.dshWelcome.skip(); true')`);
       }
       return evaluate(`Boolean(${primary}?.isVisible())`);
     }, 'visible application window after offline welcome skip');
@@ -124,7 +125,7 @@ export async function smokeNativeWindow(executable, artifacts) {
     assert.equal(previewState.canvas, true);
     await evaluate(`(() => { const w = ${primary}; w.close(); return true; })()`);
     await until(async () => {
-      const dialog = `${windows}.find(w => w.webContents.getURL() === 'dsh-app://shell/update-dialog.html')`;
+      const dialog = nativeWindowExpression(windows, 'dialog');
       if (await evaluate(`Boolean(${dialog}?.isVisible())`)) {
         await evaluate(`${dialog}.webContents.executeJavaScript('document.querySelector("#actions .primary")?.click(); true')`);
       }

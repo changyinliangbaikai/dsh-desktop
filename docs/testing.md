@@ -121,3 +121,8 @@ metadata caching and tries system fonts alone. It records CRT DLL versions and
 redacted errors using only the bundled fixture. It never reads a customer DOCX.
 The diagnostic archive and its passing sample report are separately published
 and included in SHA256SUMS.txt.
+
+Native GUI selectors skip destroyed BrowserWindow and WebContents objects during
+welcome-to-main-window transitions. A missing live window continues waiting; the
+preview canvas, absence of conversion errors and clean shutdown assertions remain
+required. Regression tests model both destroyed-window and destroyed-content cases.
