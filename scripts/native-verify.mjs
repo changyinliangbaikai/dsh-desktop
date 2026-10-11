@@ -11,6 +11,7 @@ import { archivePath } from '../dist/native/archive.js';
 import { intranetExecutable, nativeCliExecutable } from '../dist/native/cli.js';
 import { app, artifacts, pin, release, repository, target, verifyUpstream } from './native-common.mjs';
 import { smokeNativeWindow } from './native-gui-smoke.mjs';
+import { officeValidationEnabled } from '../dist/native/validation.js';
 
 verifyUpstream();
 const unpacked = join(release, 'win-unpacked');
@@ -92,12 +93,13 @@ writeFileSync(join(release, 'build-evidence.json'), JSON.stringify({
   automaticUpdates: false, mandatoryUpdatePolicy: false, productAnalytics: false, smoke,
   runtimeLayout: 'upstream ASAR with complete native/Office unpacking', nativeTray: 'upstream native tray and quit lifecycle',
   officeKit: office,
+  runtimePayload: 'upstream pnpm, native modules, PTY, HTML and search checks passed',
   nativeCli: {
     launcherUnmodified: true, executableAliasIdentical: true,
     launcherSha256: createHash('sha256').update(readFileSync(join(unpacked, 'resources/runtime/cli/bin/dsh.cmd'))).digest('hex'),
     executableSha256: createHash('sha256').update(readFileSync(join(unpacked, nativeCliExecutable))).digest('hex'),
   },
-  officeFinalLayout: 'upstream DOCX/XLSX/PPTX and standalone Office CLI acceptance passed',
+  officeFinalLayout: officeValidationEnabled(process.env) ? 'upstream DOCX/XLSX/PPTX and standalone Office CLI acceptance passed' : 'skipped by requested default; resource integrity verified',
   windowLifecycle,
   manualWindowsAcceptance: 'pending user testing',
 }, null, 2) + '\n');

@@ -24,7 +24,7 @@ describe('DSH offline installer package structure', () => {
   it('declares independent Host, Web client, patch, and exact peer surfaces', () => {
     expect(packageJson).toMatchObject({
       name: 'dsh-offline-plugin-installer',
-      version: '0.5.0',
+      version: '0.6.0',
       type: 'module',
       main: './lib/index.js',
       types: './lib/types/index.d.ts',
@@ -43,8 +43,8 @@ describe('DSH offline installer package structure', () => {
     expect(packageJson.dependencies).toBeUndefined()
     expect(packageJson.peerDependencies).toMatchObject({
       '@deepseek-ai/cordis': '4.0.5-alpha.1',
-      '@deepseek-ai/dsh-app-boot': '0.2.1-alpha.1',
-      '@deepseek-ai/dsh-host-webserver': '0.2.1-alpha.1',
+      '@deepseek-ai/dsh-app-boot': '0.2.1-alpha.2',
+      '@deepseek-ai/dsh-host-webserver': '0.2.1-alpha.2',
     })
   })
 
@@ -100,7 +100,7 @@ describe('DSH offline installer package structure', () => {
       'profile: web',
       'maxUploadBytes: 268435456',
       'installTimeoutMs: 300000',
-      'expectedHarnessVersion: 0.2.1-alpha.1',
+      'expectedHarnessVersion: 0.2.1-alpha.2',
       'expectedCordisVersion: 4.0.5-alpha.1',
     ]) expect(patch).toContain(fragment)
 

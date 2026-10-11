@@ -5,12 +5,14 @@ import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
 import { nativeWindowExpression } from '../dist/native/gui-selector.js';
+import { officeValidationEnabled } from '../dist/native/validation.js';
 
 export async function smokeNativeWindow(executable, artifacts) {
   const home = mkdtempSync(join(artifacts, '中文 工作区-'));
   const temporary = join(home, '临时 文件');
   mkdirSync(temporary);
-  copyFileSync(new URL('../tests/fixtures/native/preview.docx', import.meta.url), join(home, '自我介绍.docx'));
+  const validateOffice = officeValidationEnabled(process.env);
+  if (validateOffice) copyFileSync(new URL('../tests/fixtures/native/preview.docx', import.meta.url), join(home, '自我介绍.docx'));
   const env = { ...process.env, DSH_HOME: home, DSH_TELEMETRY_DISABLED: '1', TEMP: temporary, TMP: temporary };
   delete env.ELECTRON_RUN_AS_NODE;
   delete env.NODE_OPTIONS;
@@ -76,53 +78,58 @@ export async function smokeNativeWindow(executable, artifacts) {
       }
       return evaluate(`Boolean(${primary}?.isVisible())`);
     }, 'visible application window after offline welcome skip');
-    const previewCode = `(async () => {
-      // The window and Host ready line can precede the native auth-cookie bridge.
-      // Use the same public boot contract awaited by the real frontend.
-      await window.dshDesktopBoot.ready();
-      const call = async (method, payload) => {
-        const response = await fetch('/api/' + method, { method: 'POST', headers: { 'content-type': 'application/json' },
-          body: JSON.stringify({ type: 'client-request', rpcId: crypto.randomUUID(), method, payload: { args: payload } }) });
-        if (!response.ok) throw new Error(method + ': HTTP ' + response.status);
-        const envelope = await response.json();
-        if (!envelope.result.ok) throw new Error(method + ': ' + JSON.stringify(envelope.result.error));
-        return envelope.result.value;
-      };
-      await call('officeToPdf/generation', {});
-      const workspace = await call('workspace/create', { request: { path: ${JSON.stringify(home)} } });
-      const session = await call('session/create', { request: { workspaceId: workspace.workspace.workspaceId } });
-      await call('session/rename', { request: { sessionId: session.sessionId, title: 'Office preview smoke' } });
-      return { generation: true };
-    })()`;
-    const preview = await evaluate(`${primary}.webContents.executeJavaScript(${JSON.stringify(previewCode)})`, 90000);
-    assert.equal(preview.generation, true);
     const inWindow = code => evaluate(`${primary}.webContents.executeJavaScript(${JSON.stringify(code)})`);
-    captureFailure = async () => {
-      const state = await inWindow(`({ text: document.body.innerText.slice(0, 12000), rows: [...document.querySelectorAll('[role="treeitem"]')].map(e => e.textContent) })`);
-      console.log('NATIVE_PREVIEW_UI_DIAG ' + JSON.stringify(state));
-    };
-    // Empty sessions intentionally display the localized New Session label.
-    await inWindow(`[...document.querySelectorAll('button')].find(e => e.textContent === 'Continue')?.click(); true`);
-    await until(() => inWindow(`(() => {
-      [...document.querySelectorAll('button')].find(e => e.textContent === 'Configure later')?.click();
-      const workspace = document.querySelector('[role="treeitem"][aria-expanded="false"]');
-      workspace?.click();
-      return document.querySelectorAll('[role="treeitem"][aria-selected]').length === 1;
-    })()`), 'single preview session in sidebar', 20000);
-    await inWindow(`document.querySelector('[role="treeitem"][aria-selected]').click(); true`);
-    await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-expand]'))`), 'right sidebar control', 10000);
-    await inWindow(`document.querySelector('[data-sidebar-right-expand]').click(); true`);
-    await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-guide-entry="files"]'))`), 'Files entry', 10000);
-    await inWindow(`document.querySelector('[data-sidebar-right-guide-entry="files"]').click(); true`);
-    await until(() => inWindow(`Boolean([...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === '自我介绍.docx'))`), 'DOCX in Files', 15000);
-    await inWindow(`[...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === '自我介绍.docx').click(); true`);
-    let previewState;
-    await until(async () => {
-      previewState = await inWindow(`({ canvas: Boolean(document.querySelector('[data-document-preview] canvas')), failure: document.querySelector('[data-textpreview-failed]')?.textContent })`);
-      return previewState.canvas || Boolean(previewState.failure);
-    }, 'Office preview UI result', 90000);
-    assert.equal(previewState.failure, undefined, previewState.failure);
-    assert.equal(previewState.canvas, true);
+    await inWindow('window.dshDesktopBoot.ready().then(() => true)');
+    let previewEvidence = { officePreview: 'skipped by requested default' };
+    if (validateOffice) {
+      const previewCode = `(async () => {
+        // The window and Host ready line can precede the native auth-cookie bridge.
+        // Use the same public boot contract awaited by the real frontend.
+        await window.dshDesktopBoot.ready();
+        const call = async (method, payload) => {
+          const response = await fetch('/api/' + method, { method: 'POST', headers: { 'content-type': 'application/json' },
+            body: JSON.stringify({ type: 'client-request', rpcId: crypto.randomUUID(), method, payload: { args: payload } }) });
+          if (!response.ok) throw new Error(method + ': HTTP ' + response.status);
+          const envelope = await response.json();
+          if (!envelope.result.ok) throw new Error(method + ': ' + JSON.stringify(envelope.result.error));
+          return envelope.result.value;
+        };
+        await call('officeToPdf/generation', {});
+        const workspace = await call('workspace/create', { request: { path: ${JSON.stringify(home)} } });
+        const session = await call('session/create', { request: { workspaceId: workspace.workspace.workspaceId } });
+        await call('session/rename', { request: { sessionId: session.sessionId, title: 'Office preview smoke' } });
+        return { generation: true };
+      })()`;
+      const preview = await evaluate(`${primary}.webContents.executeJavaScript(${JSON.stringify(previewCode)})`, 90000);
+      assert.equal(preview.generation, true);
+      captureFailure = async () => {
+        const state = await inWindow(`({ text: document.body.innerText.slice(0, 12000), rows: [...document.querySelectorAll('[role="treeitem"]')].map(e => e.textContent) })`);
+        console.log('NATIVE_PREVIEW_UI_DIAG ' + JSON.stringify(state));
+      };
+      // Empty sessions intentionally display the localized New Session label.
+      await inWindow(`[...document.querySelectorAll('button')].find(e => e.textContent === 'Continue')?.click(); true`);
+      await until(() => inWindow(`(() => {
+        [...document.querySelectorAll('button')].find(e => e.textContent === 'Configure later')?.click();
+        const workspace = document.querySelector('[role="treeitem"][aria-expanded="false"]');
+        workspace?.click();
+        return document.querySelectorAll('[role="treeitem"][aria-selected]').length === 1;
+      })()`), 'single preview session in sidebar', 20000);
+      await inWindow(`document.querySelector('[role="treeitem"][aria-selected]').click(); true`);
+      await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-expand]'))`), 'right sidebar control', 10000);
+      await inWindow(`document.querySelector('[data-sidebar-right-expand]').click(); true`);
+      await until(() => inWindow(`Boolean(document.querySelector('[data-sidebar-right-guide-entry="files"]'))`), 'Files entry', 10000);
+      await inWindow(`document.querySelector('[data-sidebar-right-guide-entry="files"]').click(); true`);
+      await until(() => inWindow(`Boolean([...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === '自我介绍.docx'))`), 'DOCX in Files', 15000);
+      await inWindow(`[...document.querySelectorAll('[data-files-entry="file"] button')].find(e => e.textContent === '自我介绍.docx').click(); true`);
+      let previewState;
+      await until(async () => {
+        previewState = await inWindow(`({ canvas: Boolean(document.querySelector('[data-document-preview] canvas')), failure: document.querySelector('[data-textpreview-failed]')?.textContent })`);
+        return previewState.canvas || Boolean(previewState.failure);
+      }, 'Office preview UI result', 90000);
+      assert.equal(previewState.failure, undefined, previewState.failure);
+      assert.equal(previewState.canvas, true);
+      previewEvidence = { officePreviewRemote: preview, officePreviewCanvas: true };
+    }
     await evaluate(`(() => { const w = ${primary}; w.close(); return true; })()`);
     await until(async () => {
       const dialog = nativeWindowExpression(windows, 'dialog');
@@ -141,7 +148,7 @@ export async function smokeNativeWindow(executable, artifacts) {
       quitTimer = setTimeout(() => reject(new Error('Native GUI did not finish Host shutdown')), 45000);
     })]).finally(() => clearTimeout(quitTimer));
     assert.equal(outcome.code, 0, diagnostic);
-    return { closeHides: true, nativeRestore: true, nativeQuit: true, officePreviewRemote: preview, officePreviewCanvas: true, unicodeWorkspaceAndTemp: true, manualTrayClick: 'pending' };
+    return { closeHides: true, nativeRestore: true, nativeQuit: true, ...previewEvidence, unicodeWorkspaceAndTemp: true, manualTrayClick: 'pending' };
   } catch (error) {
     await captureFailure?.().catch(() => undefined);
     throw error;

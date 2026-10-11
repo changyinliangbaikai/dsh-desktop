@@ -21,7 +21,7 @@ const runtime = process.argv[3];
 const launch = () => runProfile({
   environment: loadLayeredEnv('dsh'), profile: 'desktop', resolutionMode: 'runtime',
   resolvedProfile: { profile: loadProfileDirectory('dsh', profileDir, installAnchor), installAnchor }, patchFiles: [], args: ['--no-open', '--port', '0'],
-  packageManager: { command: process.execPath, args: ['--expose-internals', join(runtime, 'pnpm/bin/pnpm.cjs')],
+  packageManager: { command: process.execPath, args: ['--expose-internals', join(runtime, 'primary-runtime/dependencies/pnpm/bin/pnpm.mjs')],
     env: { ELECTRON_RUN_AS_NODE: '1', DSH_DESKTOP_NODE_EXECUTABLE: process.execPath,
       PATH: `${join(runtime, 'bin')}${delimiter}${process.env.PATH ?? ''}` } },
 });

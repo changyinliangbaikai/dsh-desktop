@@ -20,8 +20,11 @@ plugin archive/tree.
 Reinventory and verify every byte. Never patch upstream JavaScript, override
 private methods, or duplicate Host lifecycle and plugin reconciliation. Tray
 quit delegates to native app.quit and its existing asynchronous Host cleanup.
-The native package must exercise Office conversion and offline installation
-plus restart from its final filesystem layout before publication.
+The native package must exercise offline installation plus restart, native payloads,
+and window lifecycle from its final filesystem layout before publication. The user
+confirmed the Word preview repair and requested that subsequent builds skip Office
+conversion and Word preview checks by default. Keep those probes opt-in through
+DSH_VALIDATE_OFFICE=1; continue verifying the bundled Office resource integrity.
 
 ## Product boundary
 

@@ -25,7 +25,7 @@ describe('resolveConfig', () => {
     expect(result).toMatchObject({
       profile: 'web',
       archiveStoreDir: '.dsh-offline-plugin-packages',
-      expectedHarnessVersion: '0.2.1-alpha.1',
+      expectedHarnessVersion: '0.2.1-alpha.2',
       expectedCordisVersion: '4.0.5-alpha.1',
     })
     expect(result.profileDir).toBe(join(home, 'profiles', 'web'))
