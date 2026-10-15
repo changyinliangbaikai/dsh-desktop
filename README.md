@@ -88,3 +88,8 @@ policy: rebuild older archives for the pinned Harness/Cordis versions. It does n
 use compatibility exemptions or relax package validation. Connection's public
 request admission and the official package-operation API remain the integration
 boundaries; no upstream authentication or plugin-management code is copied.
+
+Alpha.4 also removes the standalone slots package from the native runtime. The
+offline installer now keeps `dsh-client-ui-slots` as a type-only development
+dependency; its built entries do not import it. Mandatory runtime peer integrity
+checks remain unchanged. The original renderer continues supplying the slots service.

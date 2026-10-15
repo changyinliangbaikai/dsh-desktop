@@ -14,7 +14,7 @@
       "name": "dsh-offline-plugin-installer",
       "version": "0.7.0",
       "archive": "dsh-offline-plugin-installer-0.7.0.tgz",
-      "integrity": "sha512-m+00mDJME0MuC4NBkI5beCyC901O9dLzT4m2OW0tGUMJ8YlQ30ThKB9toe7D0kuEdIny8wO+s9xKhXA7XLvOsw==",
+      "integrity": "sha512-V8FVLybMF8y2jeC4F6w7mc+EwhldFOa1fVHgKWCGgi64xxbYUbi/Vdz8uiV1pjirRGG/fZtw70LHwa+L0UzQNA==",
       "profile": "desktop"
     }
   ],

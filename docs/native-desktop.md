@@ -58,3 +58,9 @@ Schemastery 3.18.5-alpha.2. The official package operation adds engines.dsh
 compatibility semantics; the bounded offline installer retains exact peer checks.
 Prior archives must be rebuilt. Runtime preparation and native configuration
 continue to use the unchanged upstream commands, source and package selection.
+
+The first alpha.4 overlay gate rejected a stale runtime peer declaration for
+dsh-client-ui-slots. It is used only in type imports and module augmentation;
+keep its exact devDependency and exclude it from runtime peers, as the native
+renderer already bundles the service. Packed-entry regression coverage prevents
+reintroducing the requirement. No missing-peer check is suppressed in Desktop.

@@ -73,6 +73,17 @@ describe('DSH offline installer package structure', () => {
     expect(requires).toEqual(['react', 'react/jsx-runtime'])
   })
 
+  it('keeps the slots type contract out of native runtime requirements', () => {
+    // Alpha.4 bundles the slots implementation into its renderer; the separate
+    // package is needed only to build this plugin's TypeScript declarations.
+    const slots = '@deepseek-ai/dsh-client-ui-slots'
+    expect(packageJson.peerDependencies).not.toHaveProperty(slots)
+    expect(packageJson.devDependencies).toMatchObject({ [slots]: '0.2.1-alpha.4' })
+    for (const entry of ['lib/index.js', 'lib/client.js']) {
+      expect(readFileSync(join(projectRoot, entry), 'utf8')).not.toContain(slots)
+    }
+  })
+
   it('ships every declared runtime surface in the packed tarball', () => {
     const result = spawnSync('npm', ['pack', '--json', '--dry-run', '--ignore-scripts'], {
       cwd: projectRoot,

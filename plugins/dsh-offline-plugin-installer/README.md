@@ -101,3 +101,9 @@ npm pack
 Native Desktop embeds the exact reviewed archive and package tree in its application runtime, composing the package-owned row for the desktop Profile. It does not copy plugin behavior into Electron. Closing the window hides it to the tray; choose Exit and relaunch after installing a plugin.
 
 Upstream 0.2.1 removes runtime invariant packages and `./invariant` exports; custom Profiles and extensions using them must be updated. Input-dock extensions overriding the retired `stats` row must use `activity` and `usage`. This installer does not consume those removed seams. Older archives must be rebuilt against Harness 0.2.1-alpha.4 and Cordis 4.0.5-alpha.2.
+
+The alpha.4 native runtime no longer ships a standalone `dsh-client-ui-slots`
+package. This plugin uses that public package only for TypeScript types and module
+augmentation, so it is an exact development dependency, not a runtime peer. The
+built Host/browser entries do not import it; the upstream renderer supplies the
+slots service. Rebuild older installer archives that declared it as a runtime peer.
