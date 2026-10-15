@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/deepseek-ai/deepseek-harness.git",
-  "commit": "d743267388641bc76f17c45ce8b4c231aed1d32c",
-  "version": "0.2.1-alpha.2",
+  "commit": "86a402200d95fecef4529d969836f1fe13c6cb0d",
+  "version": "0.2.1-alpha.4",
   "target": "win-x64",
   "appId": "io.github.changyinliangbaikai.dsh-desktop.native",
   "presets": [
@@ -12,9 +12,9 @@
   "embeddedPlugins": [
     {
       "name": "dsh-offline-plugin-installer",
-      "version": "0.6.0",
-      "archive": "dsh-offline-plugin-installer-0.6.0.tgz",
-      "integrity": "sha512-YiYuyQgA7KT/xl0w5mNeAQvGu4TQZUY/GinRztkLM1zPnnbSuoccJ3+LO0Bz1Cg1cd09uQOKTL3XYmuaGsEIyQ==",
+      "version": "0.7.0",
+      "archive": "dsh-offline-plugin-installer-0.7.0.tgz",
+      "integrity": "sha512-m+00mDJME0MuC4NBkI5beCyC901O9dLzT4m2OW0tGUMJ8YlQ30ThKB9toe7D0kuEdIny8wO+s9xKhXA7XLvOsw==",
       "profile": "desktop"
     }
   ],
@@ -30,6 +30,6 @@
       "executableSha256": "4b60b337f493421cd3b8690c9706494df620d6ba265b99c0cc6ab22b88cb6fd7"
     }
   },
-  "tag": "dsh-v0.2.1-alpha.2",
-  "npmIntegrity": "sha512-CkRE0uAOg2ldL2VpfF4cNRsl178CH5nM+8YklPrlMZl5ln0KhVfd42dJuRlgOXZmkpizCRvrVS8LAL+GKfgk0w=="
+  "tag": "dsh-v0.2.1-alpha.4",
+  "npmIntegrity": "sha512-nnJP3UyD0ldlAxH0BXhBUBYE3vI7w0DECncqzAl1EotHphE5l2ggwenoaxXiISJgDTHc5BV9JWI6YU5PSI9Ifg=="
 }

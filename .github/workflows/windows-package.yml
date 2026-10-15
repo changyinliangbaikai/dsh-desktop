@@ -147,8 +147,8 @@ jobs:
           $installed = Join-Path $root 'installed 中文'
           $env:DSH_HOME = Join-Path $root 'installer-profile'
           $previous = Join-Path $root 'previous-native06.exe'
-          Invoke-WebRequest 'https://github.com/changyinliangbaikai/dsh-desktop/releases/download/desktop-v0.6.0-native.1/Harness-Desktop-Intranet-0.6.0-native.1-x64.exe' -OutFile $previous
-          if ((Get-FileHash $previous -Algorithm SHA256).Hash.ToLowerInvariant() -ne '772c1f71c0bef5ef33c03c0ba0cfbbab6c987772d7808f0565bfe8d4c6004acf') { throw 'Previous release digest mismatch' }
+          Invoke-WebRequest 'https://github.com/changyinliangbaikai/dsh-desktop/releases/download/desktop-v0.6.0-native.2/Harness-Desktop-Intranet-0.6.0-native.2-x64.exe' -OutFile $previous
+          if ((Get-FileHash $previous -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'a19676a26eb111a9d6603d774af73829d15fe500d5c6e6e8a963aef25718d141') { throw 'Previous release digest mismatch' }
           $oldSetup = Start-Process -FilePath $previous -ArgumentList @('/S', "/D=$installed") -Wait -PassThru
           if ($oldSetup.ExitCode -ne 0) { throw 'Previous NSIS installation failed' }
           $setup = Start-Process -FilePath $installer[0].FullName -ArgumentList @('/S', "/D=$installed") -Wait -PassThru
@@ -244,11 +244,11 @@ jobs:
           prerelease: true
           fail_on_unmatched_files: true
           body: |
-            Native DeepSeek Harness 0.2.1-alpha.2, published tag dsh-v0.2.1-alpha.2 at d743267388641bc76f17c45ce8b4c231aed1d32c. Upstream source, native main.js and Host remain unchanged.
+            Native DeepSeek Harness 0.2.1-alpha.4, published tag dsh-v0.2.1-alpha.4 at 86a402200d95fecef4529d969836f1fe13c6cb0d. Upstream source, native main.js and Host remain unchanged.
 
-            Windows x64 unsigned pilot. Web Search and product analytics collection are disabled by default; Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.6.0 in the active Desktop Profile. Older exact-peer plugin archives must be rebuilt for Harness 0.2.1-alpha.2 and Cordis 4.0.5-alpha.1. Offline-installer storage needs no migration. The original tray hides the window after its first-close acknowledgement, restores it on click, and offers Exit.
+            Windows x64 unsigned pilot. Web Search and product analytics collection are disabled by default; Web fetch remains available. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.7.0 in the active Desktop Profile. Older exact-peer plugin archives must be rebuilt for Harness 0.2.1-alpha.4 and Cordis 4.0.5-alpha.2. Offline-installer storage needs no migration. The original tray hides the window after its first-close acknowledgement, restores it on click, and offers Exit.
 
-            This release follows the upstream pnpm move into the primary runtime. It preserves the existing intranet install identity and unchanged terminal launcher. CI verifies the actual NSIS upgrade from 0.6.0-native.1, offline CLI version, authenticated plugin installation and activation after restart, all search-disabled preset registries, and native window close/restore/quit. Final runtime bytes, native dependencies, pnpm, PTY and search executables are checked.
+            This release follows the upstream alpha.4 native Desktop and freshly resolves the plugin dependencies against Cordis 4.0.5-alpha.2 / Schemastery 3.18.5-alpha.2. It preserves the existing intranet install identity and unchanged terminal launcher. CI verifies the actual NSIS upgrade from 0.6.0-native.2, offline CLI version, authenticated plugin installation and activation after restart, all search-disabled preset registries, and native window close/restore/quit. Final runtime bytes, native dependencies, pnpm, PTY and search executables are checked.
 
             Word preview is already confirmed working by the customer after installing the current x64 Microsoft Visual C++ runtime. Subsequent builds skip Office conversion and Word preview checks by default at the customer's request. Resource hashes are still verified. The optional diagnostic ZIP remains available; the evidence records whether diagnostics were requested or skipped. LibreOffice Kit / Windows engine 0.1.5 are bundled. The Microsoft x64 Visual C++ v14 runtime remains a separate prerequisite.
 

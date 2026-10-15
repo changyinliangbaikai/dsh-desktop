@@ -1,6 +1,6 @@
 # Native desktop candidate
 
-The candidate pins Harness 0.2.1-alpha.2 at d743267388641bc76f17c45ce8b4c231aed1d32c.
+The candidate pins Harness 0.2.1-alpha.4 at 86a402200d95fecef4529d969836f1fe13c6cb0d.
 The upstream checkout, compiled native main.js and Host remain byte-identical.
 Upstream now owns Windows tray behavior, its first-close notice, explicit quit
 confirmation, complete Office package unpacking, and engine resolution. The
@@ -18,8 +18,8 @@ uses the original upstream preparation commands with the supported
 prepare:dsh --defer-runtime-smoke option. No upstream source is patched to skip a
 check. The final resource inventory and Office entry/engine hashes remain required.
 
-The independently built offline installer 0.6.0 pins Harness 0.2.1-alpha.2 and Cordis
-4.0.5-alpha.1. Its npm lock is resolved from an empty project and checked with npm ls.
+The independently built offline installer 0.7.0 pins Harness 0.2.1-alpha.4 and Cordis
+4.0.5-alpha.2. Its npm lock is resolved from an empty project and checked with npm ls.
 Older archives with exact Harness peers must be rebuilt for this candidate.
 Its source and package retain ownership of all installation behavior.
 
@@ -42,7 +42,7 @@ runtime DLL versions so hosted-runner success is not presented as proof of a
 prerequisite-free Windows 10 installation. This is a dependency finding, not a
 confirmed diagnosis of the earlier customer failure.
 
-The October 11 build pins the published `dsh-v0.2.1-alpha.2` release. Product
+The October 15 build pins the published `dsh-v0.2.1-alpha.4` release. Product
 analytics' generated `enabled` value is false while its RPC service remains
 registered. Installer filenames include the downstream version. The new exact
 compatibility tag is applied only after package, Profile and Desktop gates pass;
@@ -52,3 +52,9 @@ The upstream pnpm payload now lives under runtime/primary-runtime/dependencies/p
 The native Host and CLI supply that invocation; the offline plugin consumes only
 the public Profile package-manager contract. The final-layout smoke uses the same
 path and verifies offline installation after the move.
+
+The October 15 alpha.4 transition freshly resolves Cordis 4.0.5-alpha.2 and
+Schemastery 3.18.5-alpha.2. The official package operation adds engines.dsh
+compatibility semantics; the bounded offline installer retains exact peer checks.
+Prior archives must be rebuilt. Runtime preparation and native configuration
+continue to use the unchanged upstream commands, source and package selection.
