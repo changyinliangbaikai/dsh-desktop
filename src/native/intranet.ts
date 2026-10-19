@@ -27,7 +27,7 @@ export function disableWebSearch(source: string, kind: 'base' | 'preset'): strin
   const document = readCordisConfiguration(source);
   if (!Array.isArray(document)) throw new Error('Expected Cordis row array');
   let tools = 0;
-  let providers = 0;
+  const providers = new Set<string>();
   function visit(rows: unknown[]): void {
     for (const value of rows) {
       if (!object(value)) throw new Error('Expected Cordis row object');
@@ -43,17 +43,17 @@ export function disableWebSearch(source: string, kind: 'base' | 'preset'): strin
         value.config.search = false;
         tools++;
       }
-      if (value.id === 'web-search-deepseek') {
-        if (value.name !== '@deepseek-ai/dsh-web-search-deepseek') {
+      if (value.id === 'web-search-deepseek' || value.id === 'web-deepseek-api') {
+        if (value.name !== `@deepseek-ai/dsh-${value.id}` || providers.has(value.id)) {
           throw new Error('Unexpected search provider');
         }
         value.disabled = true;
-        providers++;
+        providers.add(value.id);
       }
     }
   }
   visit(document);
-  if (tools !== 1 || providers !== (kind === 'base' ? 1 : 0)) {
+  if (tools !== 1 || providers.size !== (kind === 'base' ? 2 : 0)) {
     throw new Error('Upstream web-search rows changed; review the pinned configuration');
   }
   return dump(document, { schema, lineWidth: -1, noRefs: true, sortKeys: false });

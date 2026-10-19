@@ -4,6 +4,7 @@ import { disableProductAnalytics, disableWebSearch, readCordisConfiguration } fr
 
 const tool = { id: 'tool-web', name: '@deepseek-ai/dsh-tool-web', config: { fetch: true, searchTimeoutMs: 60000 } };
 const provider = { id: 'web-search-deepseek', name: '@deepseek-ai/dsh-web-search-deepseek', config: { apiKeyEnv: 'DEEPSEEK_API_KEY' } };
+const apiProvider = { id: 'web-deepseek-api', name: '@deepseek-ai/dsh-web-deepseek-api', config: { apiKeyEnv: 'DEEPSEEK_API_KEY' } };
 
 describe('native Desktop intranet defaults', () => {
   it('disables snapshot analytics collection without disabling its RPC service', () => {
@@ -16,12 +17,15 @@ describe('native Desktop intranet defaults', () => {
     expect(() => disableProductAnalytics(JSON.stringify([row, row]))).toThrow();
     expect(() => disableProductAnalytics(JSON.stringify([{ ...row, config: null }]))).toThrow();
   });
-  it('disables search in base while preserving fetch and provider configuration', () => {
-    const rows = [{ insert: [tool, provider, { id: 'unrelated', config: { enabled: true } }] }];
+  it('disables both search providers in rc.2 while preserving HTTP fetch and provider configuration', () => {
+    const httpFetch = { id: 'web-fetch-http', name: '@deepseek-ai/dsh-web-fetch-http' };
+    const rows = [{ insert: [tool, provider, apiProvider, httpFetch, { id: 'unrelated', config: { enabled: true } }] }];
     const result = disableWebSearch(JSON.stringify(rows), 'base');
     expect(load(result)).toEqual([{ insert: [
       { ...tool, config: { ...tool.config, search: false } },
       { ...provider, disabled: true },
+      { ...apiProvider, disabled: true },
+      httpFetch,
       { id: 'unrelated', config: { enabled: true } },
     ] }]);
     expect(disableWebSearch(result, 'base')).toBe(result);
@@ -56,6 +60,8 @@ describe('native Desktop intranet defaults', () => {
   it.each([
     [{ ...tool, name: 'other' }], [{ ...tool, config: null }], [{ ...tool, config: [] }],
     [{ ...provider, name: 'other' }], [], [tool, tool], [tool, provider, provider],
+    [tool, provider], [tool, apiProvider], [tool, apiProvider, apiProvider],
+    [tool, provider, { ...apiProvider, name: 'other' }],
   ].map(rows => ({ rows })))('rejects missing, duplicate or renamed upstream seams: $rows', ({ rows }) => {
     expect(() => disableWebSearch(JSON.stringify(rows), 'base')).toThrow();
   });

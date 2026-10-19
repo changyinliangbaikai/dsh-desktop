@@ -58,7 +58,12 @@ for (const { file, sha256 } of overlay.files) {
   const rows = readCordisConfiguration(read(`dsh/${file}`).toString());
   const flat = rows.flatMap(row => row.insert ?? [row]).flatMap(row => row.name === '@deepseek-ai/dsh-agent-preset' ? row.config.plugins : [row]);
   assert.equal(flat.find(row => row.id === 'tool-web').config.search, false);
-  if (file.includes('/dsh-base/')) assert.equal(flat.find(row => row.id === 'web-search-deepseek').disabled, true);
+  if (file.includes('/dsh-base/')) {
+    for (const id of ['web-search-deepseek', 'web-deepseek-api']) {
+      assert.equal(flat.find(row => row.id === id).disabled, true, `${id} must stay disabled`);
+    }
+    assert.notEqual(flat.find(row => row.id === 'web-fetch-http').disabled, true, 'HTTP fetch must stay enabled');
+  }
 }
 const installer = readdirSync(release).filter(name => name.endsWith('.exe'));
 assert.equal(installer.length, 1, 'Exactly one installer is required');
