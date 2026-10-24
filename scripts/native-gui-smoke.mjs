@@ -4,7 +4,7 @@ import { execFileSync, spawn } from 'node:child_process';
 import { copyFileSync, mkdirSync, mkdtempSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { nativeWindowExpression } from '../dist/native/gui-selector.js';
+import { nativeDialogContentsExpression, nativeWindowExpression } from '../dist/native/gui-selector.js';
 import { officeValidationEnabled } from '../dist/native/validation.js';
 
 export async function smokeNativeWindow(executable, artifacts) {
@@ -132,9 +132,9 @@ export async function smokeNativeWindow(executable, artifacts) {
     }
     await evaluate(`(() => { const w = ${primary}; w.close(); return true; })()`);
     await until(async () => {
-      const dialog = nativeWindowExpression(windows, 'dialog');
-      if (await evaluate(`Boolean(${dialog}?.isVisible())`)) {
-        await evaluate(`${dialog}.webContents.executeJavaScript('document.querySelector("#actions .primary")?.click(); true')`);
+      const dialog = nativeDialogContentsExpression(`${electron}.webContents.getAllWebContents()`);
+      if (await evaluate(`Boolean(${dialog})`)) {
+        await evaluate(`${dialog}.executeJavaScript('document.querySelector("#actions .primary")?.click(); true')`);
       }
       return evaluate(`Boolean(${primary} && !${primary}.isDestroyed() && !${primary}.isVisible())`);
     }, 'close to tray after native first-close acknowledgement', 10000);

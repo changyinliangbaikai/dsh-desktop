@@ -76,3 +76,11 @@ staging scripts. A regression runs the real downstream preparation orchestrator
 with isolated command boundaries, checking build/pack provenance, stage order,
 target environment and the Office-smoke deferral. The native Profile smoke reads
 templates from the new public dsh-official-bundles package.
+
+
+The latest native close-confirmation renderer is a WebContentsView overlay, not
+an additional BrowserWindow. The GUI smoke enumerates live webContents at the
+exact shell dialog URL before clicking the real acknowledgement button. Window
+hide, restore and quit assertions remain mandatory. The selector regression
+covers an overlay absent from the window roster and ignores destroyed/unrelated
+renderers; it does not invoke private native lifecycle methods.
