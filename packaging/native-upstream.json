@@ -1,7 +1,7 @@
 {
   "repository": "https://github.com/deepseek-ai/deepseek-harness.git",
-  "commit": "687f282e8625c6b8d11ff58211a90524be2e4317",
-  "version": "0.2.1-rc.2",
+  "commit": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
+  "version": "0.2.1-rc.3",
   "target": "win-x64",
   "appId": "io.github.changyinliangbaikai.dsh-desktop.native",
   "presets": [
@@ -12,13 +12,13 @@
   "embeddedPlugins": [
     {
       "name": "dsh-offline-plugin-installer",
-      "version": "0.8.0",
-      "archive": "dsh-offline-plugin-installer-0.8.0.tgz",
-      "integrity": "sha512-VdoSsZsRf1uB1jn37hNONsTZzTxEz5z8bMEqm9iotgDNfhOdqeBbxQgelylk9ErqxtQ5AtEx6gFn4e/9eA4yJQ==",
+      "version": "0.9.0",
+      "archive": "dsh-offline-plugin-installer-0.9.0.tgz",
+      "integrity": "sha512-4+qsfcUfnDABnXYMsAwnURudyWe7tUx363brQyiE3senUujT7SVucgk0FeHhb93Gueffb/qZCJTOYky+zzvGUg==",
       "profile": "desktop"
     }
   ],
-  "sourceStatus": "tagged-release",
+  "sourceStatus": "unreleased-snapshot",
   "officeKit": {
     "version": "0.1.5",
     "integrity": "sha512-H12xtUsAyl70zFeQ5pk5GGRc3N1+6zn+DVAcqwlguI6EvqopBGP3xkUmePU7g5f6ydYlDZLWedHT9lTSL7zLxA==",
@@ -30,6 +30,7 @@
       "executableSha256": "4b60b337f493421cd3b8690c9706494df620d6ba265b99c0cc6ab22b88cb6fd7"
     }
   },
-  "tag": "dsh-v0.2.1-rc.2",
-  "npmIntegrity": "sha512-tvY+yhfKRifthbqPe/OK0AYxM5ZkvqfYq/jMYgJcEUxiRRL1Vwra3Ti5TB6AXgSWQdiPHYh/Vp6SJa9yHwMNuw=="
+  "npmIntegrity": "sha512-H+E9HLnHf7fJqzen84Z9Bq8ggb5xbrcbyhZjXTJLE9NabHr3zteGvTRvdvGkxPl4ov80is4WLglFmSo+/olJjg==",
+  "baseTag": "dsh-v0.2.1-rc.3",
+  "baseTagCommit": "1f81c047fc48fa190a683e469daa699857e9afe8"
 }

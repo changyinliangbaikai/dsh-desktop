@@ -13,7 +13,7 @@ export const DEFAULT_CONFIG = Object.freeze({
   maxStoredBytes: 2 * 1024 * 1024 * 1024,
   installTimeoutMs: 5 * 60 * 1_000,
   maxCliOutputBytes: 64 * 1024,
-  expectedHarnessVersion: '0.2.1-rc.2',
+  expectedHarnessVersion: '0.2.1-rc.3',
   expectedCordisVersion: '4.0.5',
   allowedPackagePrefixes: Object.freeze([]) as readonly string[],
 })

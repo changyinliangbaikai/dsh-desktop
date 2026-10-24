@@ -30,7 +30,7 @@ export function fixtureManifest(overrides: Record<string, unknown> = {}): Record
     dsh: { bundle: { patch: './cordis.patch.yml' } },
     peerDependencies: {
       '@deepseek-ai/cordis': '4.0.5',
-      '@deepseek-ai/dsh-host-webserver': '0.2.1-rc.2',
+      '@deepseek-ai/dsh-host-webserver': '0.2.1-rc.3',
     },
     ...overrides,
   }

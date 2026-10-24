@@ -11,8 +11,8 @@ const { desktopTargetBuildPaths } = await upstreamScript('desktop-build-paths.mj
 const { loadDesktopPackageEnvironment, validateDesktopPackageEnvironment } = await upstreamScript('desktop-package-environment.mjs');
 const { desktopElectronBuilderEnvironment } = await upstreamScript('package-target.ts');
 const { requireDesktopToolchain } = await upstreamScript('desktop-toolchain-preflight.ts');
-const paths = desktopTargetBuildPaths(pin.target);
 const environment = loadDesktopPackageEnvironment('win32');
+const paths = desktopTargetBuildPaths(pin.target, environment);
 validateDesktopPackageEnvironment(environment, { platform: 'win32', arch: 'x64' }, { unsigned: true, prepareOnly: true });
 await requireDesktopToolchain('win32', environment);
 const env = {
@@ -21,8 +21,8 @@ const env = {
   DSH_DESKTOP_BUILD_COMMIT: pin.commit, DSH_DESKTOP_BUILD_DIRTY: '0',
 };
 const execute = (args, cwd = upstream) => pnpm(args, cwd, env);
-execute(['run', 'build:official']);
-execute(['run', 'release:pack', '--family', 'dsh', '--out', paths.packedDsh]);
+execute(['run', 'build', '--profile', 'local']);
+execute(['exec', 'tsx', 'apps/desktop/scripts/pack-local-packages.ts', '--out', paths.packedDsh]);
 execute(['--dir', 'apps/desktop-host', 'pack', '--pack-destination', paths.packedDsh]);
 execute(['run', 'release:pack', '--family', 'vendor', '--out', paths.packedVendor]);
 rmSync(paths.packedLandlock, { recursive: true, force: true });

@@ -1,6 +1,6 @@
 # Native desktop candidate
 
-The candidate pins Harness 0.2.1-rc.2 at 687f282e8625c6b8d11ff58211a90524be2e4317.
+The candidate pins Harness 0.2.1-rc.3 at 22ddee3792402c3e70ec5f86a63c3e3e895a2f60.
 The upstream checkout, compiled native main.js and Host remain byte-identical.
 Upstream now owns Windows tray behavior, its first-close notice, explicit quit
 confirmation, complete Office package unpacking, and engine resolution. The
@@ -18,7 +18,7 @@ uses the original upstream preparation commands with the supported
 prepare:dsh --defer-runtime-smoke option. No upstream source is patched to skip a
 check. The final resource inventory and Office entry/engine hashes remain required.
 
-The independently built offline installer 0.8.0 pins Harness 0.2.1-rc.2 and Cordis
+The independently built offline installer 0.9.0 pins Harness 0.2.1-rc.3 and Cordis
 4.0.5. Its npm lock is resolved from an empty project and checked with npm ls.
 Older archives with exact Harness peers must be rebuilt for this candidate.
 Its source and package retain ownership of all installation behavior.
@@ -42,10 +42,9 @@ runtime DLL versions so hosted-runner success is not presented as proof of a
 prerequisite-free Windows 10 installation. This is a dependency finding, not a
 confirmed diagnosis of the earlier customer failure.
 
-The October 19 build pins the published `dsh-v0.2.1-rc.2` release. Product
+The October 24 build pins source snapshot 22ddee3792402c3e70ec5f86a63c3e3e895a2f60 after the published `dsh-v0.2.1-rc.3` tag. Product
 analytics' generated `enabled` value is false while its RPC service remains
-registered. Installer filenames include the downstream version. The new exact
-compatibility tag is applied only after package, Profile and Desktop gates pass;
+registered. Installer filenames include the downstream version. This untagged snapshot does not receive the earlier upstream release tag;
 previous compatibility tags remain unchanged.
 
 The upstream pnpm payload now lives under runtime/primary-runtime/dependencies/pnpm.
@@ -53,7 +52,7 @@ The native Host and CLI supply that invocation; the offline plugin consumes only
 the public Profile package-manager contract. The final-layout smoke uses the same
 path and verifies offline installation after the move.
 
-The October 19 rc.2 transition freshly resolves Cordis 4.0.5 and
+The October 24 rc.3 snapshot transition freshly resolves Cordis 4.0.5 and
 Schemastery 3.18.5. The official package operation adds engines.dsh
 compatibility semantics; the bounded offline installer retains exact peer checks.
 Prior archives must be rebuilt. Runtime preparation and native configuration
@@ -70,3 +69,10 @@ fetch. The generated base disables this row and web-search-deepseek; the default
 HTTP fetch provider remains enabled. The four tool presets still exclude
 web_search. Regression coverage rejects missing, renamed and duplicate provider
 rows, so a changed upstream shape requires review before packaging.
+
+
+Unsigned preparation uses the unchanged upstream local build and local-package
+staging scripts. A regression runs the real downstream preparation orchestrator
+with isolated command boundaries, checking build/pack provenance, stage order,
+target environment and the Office-smoke deferral. The native Profile smoke reads
+templates from the new public dsh-official-bundles package.

@@ -24,7 +24,7 @@ describe('DSH offline installer package structure', () => {
   it('declares independent Host, Web client, patch, and exact peer surfaces', () => {
     expect(packageJson).toMatchObject({
       name: 'dsh-offline-plugin-installer',
-      version: '0.8.0',
+      version: '0.9.0',
       type: 'module',
       main: './lib/index.js',
       types: './lib/types/index.d.ts',
@@ -43,8 +43,8 @@ describe('DSH offline installer package structure', () => {
     expect(packageJson.dependencies).toBeUndefined()
     expect(packageJson.peerDependencies).toMatchObject({
       '@deepseek-ai/cordis': '4.0.5',
-      '@deepseek-ai/dsh-app-boot': '0.2.1-rc.2',
-      '@deepseek-ai/dsh-host-webserver': '0.2.1-rc.2',
+      '@deepseek-ai/dsh-app-boot': '0.2.1-rc.3',
+      '@deepseek-ai/dsh-host-webserver': '0.2.1-rc.3',
     })
   })
 
@@ -78,7 +78,7 @@ describe('DSH offline installer package structure', () => {
     // package is needed only to build this plugin's TypeScript declarations.
     const slots = '@deepseek-ai/dsh-client-ui-slots'
     expect(packageJson.peerDependencies).not.toHaveProperty(slots)
-    expect(packageJson.devDependencies).toMatchObject({ [slots]: '0.2.1-rc.2' })
+    expect(packageJson.devDependencies).toMatchObject({ [slots]: '0.2.1-rc.3' })
     for (const entry of ['lib/index.js', 'lib/client.js']) {
       expect(readFileSync(join(projectRoot, entry), 'utf8')).not.toContain(slots)
     }
@@ -111,7 +111,7 @@ describe('DSH offline installer package structure', () => {
       'profile: web',
       'maxUploadBytes: 268435456',
       'installTimeoutMs: 300000',
-      'expectedHarnessVersion: 0.2.1-rc.2',
+      'expectedHarnessVersion: 0.2.1-rc.3',
       'expectedCordisVersion: 4.0.5',
     ]) expect(patch).toContain(fragment)
 
