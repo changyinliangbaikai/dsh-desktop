@@ -84,3 +84,10 @@ exact shell dialog URL before clicking the real acknowledgement button. Window
 hide, restore and quit assertions remain mandatory. The selector regression
 covers an overlay absent from the window roster and ignores destroyed/unrelated
 renderers; it does not invoke private native lifecycle methods.
+
+
+Per-Peer index injections require the request identity resolved by the Web
+server. The isolated-Profile gate checks the authenticated HTTP HTML for the
+installer contribution instead of invoking collectIndexInjections without a
+Peer. Unauthenticated-route rejection, package installation and restart
+activation remain separate mandatory assertions. No owner principal is fabricated.

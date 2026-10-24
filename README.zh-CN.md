@@ -67,3 +67,8 @@ Word 预览、Office 转换和诊断工具执行默认跳过，证据明确记�
 工具执行改由执行器插件负责；自定义 Profile 应移除旧 `tools.mode` /
 `DSH_TOOLS_MODE` 覆盖，按当前 native/PTC 预设配置。离线安装器继续使用
 上游公开的包操作接口，不实现这些上游行为。
+
+
+Web 首页注入现在要求已验证的请求 Peer 上下文。自定义 Web 载体调用
+`renderIndex` / `collectIndexInjections` 时需传递该上下文。Desktop 验收直接
+检查认证后的实际 HTTP 页面，由原生服务器处理请求身份。

@@ -107,3 +107,9 @@ must update those imports. Tool execution now belongs to executor plugins;
 remove retired `tools.mode` / `DSH_TOOLS_MODE` overrides and follow the current
 native/PTC preset configuration. The offline installer continues to use public
 package operations and does not implement these upstream behaviors.
+
+
+Web index injections now require the verified request Peer. Custom Web carriers
+must propagate that context to `renderIndex` / `collectIndexInjections`. Desktop
+acceptance verifies client discovery in the actual authenticated HTTP HTML,
+letting the native server supply its own admission context.

@@ -34,7 +34,10 @@ try {
   const cookie = login.headers.getSetCookie().map(value => value.split(';')[0]).join('; ');
   const response = await fetch(new URL('/', ready), { headers: { cookie } });
   assert.equal(response.status, 200);
-  assert.ok((await response.text()).includes('<html'));
+  const html = await response.text();
+  assert.ok(html.includes('<html'));
+  // The HTTP renderer supplies the authenticated Peer for per-user injections.
+  assert.ok(html.includes('dsh-offline-plugin-installer'), 'Authenticated HTML must discover the offline installer client');
   const fixtures = fileURLToPath(new URL('../tests/fixtures/native/', import.meta.url));
   const sessionPath = new URL('/dsh-offline-plugin-installer/session.json', ready);
   assert.equal((await fetch(sessionPath)).status, 401, 'Installer metadata requires native authentication');
@@ -43,7 +46,6 @@ try {
   const installer = await installerResponse.json();
   assert.equal(installer.profile, 'desktop');
   assert.equal(installer.networkDisabled, true);
-  assert.ok(JSON.stringify(ctx.webServer.collectIndexInjections()).includes('dsh-offline-plugin-installer'));
   const archive = join(process.env.DSH_HOME, 'smoke-plugin.tgz');
   execFileSync('tar', ['--format=ustar', '-czf', archive, '-C', join(fixtures, 'offline-plugin'), 'package']);
   const install = await fetch(new URL('/dsh-offline-plugin-installer/install.tgz', ready), {
