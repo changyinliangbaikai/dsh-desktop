@@ -91,3 +91,7 @@ server. The isolated-Profile gate checks the authenticated HTTP HTML for the
 installer contribution instead of invoking collectIndexInjections without a
 Peer. Unauthenticated-route rejection, package installation and restart
 activation remain separate mandatory assertions. No owner principal is fabricated.
+
+The snapshot and CLI require Node >=24.9.0. Downstream and installer manifests
+share that minimum, and the final-layout gate probes the actual Electron Node
+version before accepting the package. Customers use the bundled runtime.

@@ -12,7 +12,7 @@ without reimplementing its behavior.
 
 - DeepSeek Harness `0.2.1-rc.3`
 - Cordis `4.0.5`
-- Node `^22.19.0 || >=24.0.0`
+- Node `>=24.9.0`
 
 All DSH and Cordis peer dependencies are exact. A different Harness baseline requires a new compatible plugin release and assembled-profile verification.
 

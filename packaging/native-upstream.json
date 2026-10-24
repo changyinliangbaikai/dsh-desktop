@@ -14,7 +14,7 @@
       "name": "dsh-offline-plugin-installer",
       "version": "0.9.0",
       "archive": "dsh-offline-plugin-installer-0.9.0.tgz",
-      "integrity": "sha512-4+qsfcUfnDABnXYMsAwnURudyWe7tUx363brQyiE3senUujT7SVucgk0FeHhb93Gueffb/qZCJTOYky+zzvGUg==",
+      "integrity": "sha512-Ma0QudmVgsNRr+YZj2Quo65ytVrvkK/h0rcdNGX9p6rYqcR/uT+Ht7vitIXkc2Jg/qFzREGT781Sg9soedN/ww==",
       "profile": "desktop"
     }
   ],
@@ -32,5 +32,6 @@
   },
   "npmIntegrity": "sha512-H+E9HLnHf7fJqzen84Z9Bq8ggb5xbrcbyhZjXTJLE9NabHr3zteGvTRvdvGkxPl4ov80is4WLglFmSo+/olJjg==",
   "baseTag": "dsh-v0.2.1-rc.3",
-  "baseTagCommit": "1f81c047fc48fa190a683e469daa699857e9afe8"
+  "baseTagCommit": "1f81c047fc48fa190a683e469daa699857e9afe8",
+  "nodeMinimum": "24.9.0"
 }

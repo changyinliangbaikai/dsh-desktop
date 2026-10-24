@@ -11,7 +11,7 @@ import { archivePath } from '../dist/native/archive.js';
 import { intranetExecutable, nativeCliExecutable } from '../dist/native/cli.js';
 import { app, artifacts, pin, release, repository, target, verifyUpstream } from './native-common.mjs';
 import { smokeNativeWindow } from './native-gui-smoke.mjs';
-import { officeValidationEnabled } from '../dist/native/validation.js';
+import { assertMinimumNodeVersion, officeValidationEnabled } from '../dist/native/validation.js';
 
 verifyUpstream();
 const unpacked = join(release, 'win-unpacked');
@@ -29,6 +29,11 @@ assert.ok(!existsSync(join(unpacked, 'resources/app-update.yml')));
 assert.deepEqual(read('lib/main.js'), readFileSync(join(app, 'lib/main.js')));
 assert.deepEqual(readFileSync(join(unpacked, nativeCliExecutable)), readFileSync(join(unpacked, intranetExecutable)));
 assert.deepEqual(readFileSync(join(unpacked, 'resources/runtime/cli/bin/dsh.cmd')), readFileSync(join(app, 'cli/dsh.cmd')));
+const nodeVersion = execFileSync(join(unpacked, intranetExecutable), ['-p', 'process.versions.node'], {
+  env: { ...process.env, ELECTRON_RUN_AS_NODE: '1', NODE_OPTIONS: '' },
+  encoding: 'utf8', timeout: 15000,
+}).trim();
+assertMinimumNodeVersion(nodeVersion, pin.nodeMinimum);
 const inventory = JSON.parse(read('dsh/desktop-runtime.json'));
 assert.equal(inventory.release.version, pin.version);
 assert.equal(inventory.platform, 'win32');
@@ -94,6 +99,7 @@ copyFileSync(join(target, 'intranet-overlay.json'), join(release, 'intranet-over
 const windowLifecycle = await smokeNativeWindow(join(unpacked, 'Harness Desktop Intranet.exe'), artifacts);
 writeFileSync(join(release, 'build-evidence.json'), JSON.stringify({
   upstream: pin, shell: 'byte-identical native main.js', signing: 'unsigned',
+  nodeVersion,
   verifiedRuntimeFiles: inventory.files.length,
   automaticUpdates: false, mandatoryUpdatePolicy: false, productAnalytics: false, smoke,
   runtimeLayout: 'upstream ASAR with complete native/Office unpacking', nativeTray: 'upstream native tray and quit lifecycle',

@@ -6,7 +6,7 @@
   "description": "Pinned native DeepSeek Harness desktop builds with intranet search defaults",
   "main": "dist/main/index.js",
   "engines": {
-    "node": "^22.19.0 || >=24.0.0"
+    "node": ">=24.9.0"
   },
   "packageManager": "pnpm@11.7.0",
   "scripts": {

@@ -25,6 +25,7 @@ describe('DSH offline installer package structure', () => {
     expect(packageJson).toMatchObject({
       name: 'dsh-offline-plugin-installer',
       version: '0.9.0',
+      engines: { node: '>=24.9.0' },
       type: 'module',
       main: './lib/index.js',
       types: './lib/types/index.d.ts',

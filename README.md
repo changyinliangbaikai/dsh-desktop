@@ -39,7 +39,7 @@ to the current upstream schema.
 
 ## Build and release
 
-Use a Windows x64 host with Node 24, pnpm 11.7.0 for Desktop (upstream owns pnpm 11.28.5), Python, Visual C++ Build Tools and Windows SDK. The GitHub workflow supplies these. Both repositories are independently checked out; all upstream outputs go into the integration artifact plane:
+Use a Windows x64 host with Node >=24.9.0, pnpm 11.7.0 for Desktop (upstream owns pnpm 11.28.5), Python, Visual C++ Build Tools and Windows SDK. The GitHub workflow supplies these. Both repositories are independently checked out; all upstream outputs go into the integration artifact plane:
 
 ```text
 <workspace>/Dsh-Desktop/
@@ -113,3 +113,7 @@ Web index injections now require the verified request Peer. Custom Web carriers
 must propagate that context to `renderIndex` / `collectIndexInjections`. Desktop
 acceptance verifies client discovery in the actual authenticated HTTP HTML,
 letting the native server supply its own admission context.
+
+The rc.3 snapshot requires Node >=24.9.0. Desktop and plugin manifests reflect
+that minimum. The Windows installer carries its own runtime; users do not need
+a separate Node installation. Packaging checks the actual Electron Node version.

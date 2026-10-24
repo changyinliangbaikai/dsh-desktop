@@ -72,3 +72,6 @@ Word 预览、Office 转换和诊断工具执行默认跳过，证据明确记�
 Web 首页注入现在要求已验证的请求 Peer 上下文。自定义 Web 载体调用
 `renderIndex` / `collectIndexInjections` 时需传递该上下文。Desktop 验收直接
 检查认证后的实际 HTTP 页面，由原生服务器处理请求身份。
+
+本快照最低要求 Node 24.9，构建工程和内置插件清单已同步此要求。Windows 安装包
+自带运行时，无需额外安装 Node；发布前会读取实际 Electron 内的 Node 版本核对。
