@@ -1,0 +1,99 @@
+name: Linux package
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  package-linux-x64:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    container:
+      # Build and verify against the glibc 2.31 baseline used by Kylin V10 SP1.
+      image: ubuntu:20.04@sha256:8feb4d8ca5354def3d8fce243717141ce31e2c428701f6682bd2fafe15388214
+    defaults:
+      run:
+        shell: bash
+        working-directory: Dsh-Desktop
+    env:
+      DSH_TELEMETRY_DISABLED: '1'
+      XZ_DEFAULTS: -T2
+    steps:
+      - name: Install Linux build tools and desktop libraries
+        working-directory: .
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            binutils build-essential ca-certificates curl fakeroot file git jq pkg-config python3 unzip xz-utils \
+            libasound2 libatspi2.0-0 libcups2 libgbm1 libgtk-3-0 libnotify4 libnss3 libsecret-1-dev \
+            libxss1 libxtst6 xdg-utils
+      - uses: actions/checkout@v6
+        with:
+          path: Dsh-Desktop
+          persist-credentials: false
+      - name: Read Linux toolchain versions
+        id: toolchain
+        run: |
+          manifest=packaging/linux-x64/runtime-manifest.json
+          node_version=$(jq -er .node "$manifest")
+          pnpm_version=$(jq -er .pnpm "$manifest")
+          printf 'node=%s\npnpm=%s\n' "$node_version" "$pnpm_version" >> "$GITHUB_OUTPUT"
+      - uses: actions/setup-node@v6
+        with:
+          node-version: ${{ steps.toolchain.outputs.node }}
+          package-manager-cache: false
+      - name: Install frozen Desktop dependencies
+        env:
+          PNPM_VERSION: ${{ steps.toolchain.outputs.pnpm }}
+        run: |
+          npm install --global --no-audit --no-fund "pnpm@$PNPM_VERSION"
+          pnpm install --frozen-lockfile
+      - name: Build Linux x86_64 Debian installer
+        run: pnpm run pack:linux
+      - name: Verify the packaged runtime and record its checksum
+        run: |
+          linux_artifacts=../.artifacts/linux-desktop
+          release="$linux_artifacts/release"
+          desktop_version=$(jq -er .desktopVersion packaging/linux-x64/runtime-manifest.json)
+          installer="Harness-Desktop-$desktop_version-linux-x86_64.deb"
+          test "$(dpkg-deb --field "$release/$installer" Package)" = harness-desktop
+          test "$(dpkg-deb --field "$release/$installer" Architecture)" = amd64
+          test "$(dpkg-deb --field "$release/$installer" Version)" = "${desktop_version/-/\~}"
+
+          extracted=$(mktemp -d)
+          trap 'rm -rf "$extracted"' EXIT
+          dpkg-deb --extract "$release/$installer" "$extracted"
+          app="$extracted/opt/Harness Desktop"
+          runtime="$app/resources/runtime"
+          for executable in "$app/harness-desktop" "$app/chrome-sandbox" "$runtime/node/bin/node"; do
+            if ! libraries=$(ldd "$executable" 2>&1) || [[ "$libraries" == *'not found'* ]]; then
+              printf '%s\n' "$executable" "$libraries" >&2
+              exit 1
+            fi
+          done
+          cmp "$linux_artifacts/runtime/runtime-manifest.json" "$runtime/runtime-manifest.json"
+          for archive in "$linux_artifacts/runtime/plugins/"*.tgz; do
+            cmp "$archive" "$runtime/plugins/${archive##*/}"
+          done
+          DSH_DESKTOP_REAL_RUNTIME_ROOT="$runtime" pnpm run test:linux-runtime
+
+          cd "$release"
+          sha256sum "$installer" > SHA256SUMS.txt
+          sha256sum --check SHA256SUMS.txt
+      - name: Upload verified Linux installer
+        uses: actions/upload-artifact@v7
+        with:
+          name: harness-desktop-linux-x86_64
+          path: |
+            .artifacts/linux-desktop/release/*.deb
+            .artifacts/linux-desktop/release/SHA256SUMS.txt
+          if-no-files-found: error
+          include-hidden-files: true
+          compression-level: 0
+          retention-days: 30

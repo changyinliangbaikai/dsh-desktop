@@ -139,3 +139,5 @@ pnpm run test:linux-runtime
 ```
 
 The Linux manifest and frozen runtime lock are under `packaging/linux-x64/`. The Linux packaging command builds and verifies the [matching installer variant](plugins/dsh-offline-plugin-installer/compat/README.md). The staged runtime and installer are written to the integration workspace's `.artifacts/linux-desktop/`.
+
+On GitHub, **Actions → Linux package** builds on pushes and pull requests using the glibc 2.31 baseline. After the packaged runtime passes its checks, the run uploads **harness-desktop-linux-x86_64** under **Artifacts** with the `.deb` and `SHA256SUMS.txt`.

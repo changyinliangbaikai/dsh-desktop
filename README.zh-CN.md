@@ -97,3 +97,5 @@ pnpm run test:linux-runtime
 ```
 
 Linux 的版本清单和冻结依赖锁位于 `packaging/linux-x64/`。打包命令会构建并核验[匹配的安装器版本](plugins/dsh-offline-plugin-installer/compat/README.md)，运行时和安装包输出至集成工作区的 `.artifacts/linux-desktop/`。
+
+每次推送或更新拉取请求时，GitHub 的 **Actions → Linux package** 会在 glibc 2.31 基线上构建。打包后的运行时通过检查后，可在对应运行的 **Artifacts** 中下载 **harness-desktop-linux-x86_64**，其中包含 `.deb` 和 `SHA256SUMS.txt`。
