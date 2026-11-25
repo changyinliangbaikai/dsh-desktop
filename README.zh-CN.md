@@ -2,7 +2,7 @@
 
 [English](README.md)
 
-此分支使用固定的 DSH 原生桌面客户端 **0.2.1-rc.3**，上游提交 `22ddee3792402c3e70ec5f86a63c3e3e895a2f60`。下游测试版本 **0.6.0-native.5**，Windows x64，未签名。上游源码及原生 main.js 保持不变。
+Windows 构建使用固定的 DSH 原生桌面客户端 **0.2.1-rc.3**，上游提交 `22ddee3792402c3e70ec5f86a63c3e3e895a2f60`。下游测试版本 **0.6.0-native.5**，Windows x64，未签名。上游源码及原生 main.js 保持不变。Linux x86_64 构建通过下游 Electron 壳运行官方 Web Profile。
 
 本次固定 `dsh-v0.2.1-rc.3` 标签之后的最新源码快照。产品版本仍为 rc.3，但实际源码为上述 `22ddee3` 提交，并非已发布标签对应的 `1f81c04`。离线安装插件使用重新解析的独立 npm 锁文件和精确的 0.2.1-rc.3 依赖；旧 Harness 版本的插件包需重建后安装。运行时依赖解析为 LibreOffice Kit 0.1.5 和 Windows 引擎 0.1.5，使用匹配的官方 Windows 引擎包；打包时核对版本及入口/引擎文件哈希。客户已确认更新客户端和 x64 运行库后 Word 预览恢复正常，后续构建按要求默认跳过该专项验证。
 
@@ -75,3 +75,25 @@ Web 首页注入现在要求已验证的请求 Peer 上下文。自定义 Web �
 
 本快照最低要求 Node 24.9，构建工程和内置插件清单已同步此要求。Windows 安装包
 自带运行时，无需额外安装 Node；发布前会读取实际 Electron 内的 Node 版本核对。
+
+## 银河麒麟 V10 Linux x86_64
+
+`Harness-Desktop-0.6.0-kylin.2-linux-x86_64.deb` 面向使用 glibc 2.31 的银河麒麟桌面 V10 SP1 x86_64。从 kylin.1 升级前先关闭 Harness Desktop，再安装新文件。安装后从系统应用菜单打开 **Harness Desktop**，也可运行 `harness-desktop`。
+
+```sh
+sudo apt install ./Harness-Desktop-0.6.0-kylin.2-linux-x86_64.deb
+```
+
+安装包内置 Electron、Node.js、pnpm、官方已发布的 `@deepseek-ai/dsh@0.2.3-alpha.2` 和离线安装器 `0.10.0`。客户端启动经过认证的本机 Web Profile，沿用 Electron 用户数据目录中的 `dsh-home`。离线安装器接入 Alpha 2 的公开设置分区和 Web 路由鉴权，入口为“设置 → 离线安装”。声明旧版 Harness 精确 peer 的归档需要为 Alpha 2 重建。关闭窗口会停止 Host，重新打开客户端即可激活刚安装的插件。
+
+从 kylin.1 升级后，首次启动会通过官方 CLI 更新原 Profile 中的离线安装器。安装包保留经校验的 `0.9.0` 归档，供更新期间解析原 Profile 中的文件依赖。
+
+在 Linux x86_64 构建机上准备 Node.js `24.22.3`、pnpm `11.7.0` 和发行版的原生编译工具，在 Desktop 仓库中运行以下命令。
+
+```sh
+pnpm install --frozen-lockfile
+pnpm run pack:linux
+pnpm run test:linux-runtime
+```
+
+Linux 的版本清单和冻结依赖锁位于 `packaging/linux-x64/`。打包命令会构建并核验[匹配的安装器版本](plugins/dsh-offline-plugin-installer/compat/README.md)，运行时和安装包输出至集成工作区的 `.artifacts/linux-desktop/`。

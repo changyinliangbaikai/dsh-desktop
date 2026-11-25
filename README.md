@@ -2,7 +2,7 @@
 
 [中文](README.zh-CN.md)
 
-This branch builds the **native DeepSeek Harness Electron desktop application**, pinned to **0.2.1-rc.3**, commit `22ddee3792402c3e70ec5f86a63c3e3e895a2f60`. Dsh-Desktop owns the build orchestration and intranet packaging defaults. It no longer packages its legacy Electron shell.
+The Windows build uses the **native DeepSeek Harness Electron desktop application**, pinned to **0.2.1-rc.3**, commit `22ddee3792402c3e70ec5f86a63c3e3e895a2f60`. Dsh-Desktop owns the build orchestration and intranet packaging defaults. The [Linux x86_64 build](#kylin-v10-linux-x86_64) runs the official Web profile in the downstream Electron shell.
 
 The downstream release version is **0.6.0-native.5**. The application and its Harness runtime retain the identical upstream version **0.2.1-rc.3**. This is an unsigned Windows x64 pilot release, installed separately as **Harness Desktop Intranet**.
 
@@ -117,3 +117,25 @@ letting the native server supply its own admission context.
 The rc.3 snapshot requires Node >=24.9.0. Desktop and plugin manifests reflect
 that minimum. The Windows installer carries its own runtime; users do not need
 a separate Node installation. Packaging checks the actual Electron Node version.
+
+## Kylin V10 Linux x86_64
+
+`Harness-Desktop-0.6.0-kylin.2-linux-x86_64.deb` targets the x86_64 edition of Kylin Desktop V10 SP1 with glibc 2.31. To upgrade from kylin.1, close Harness Desktop and install the new file. Launch **Harness Desktop** from the system menu or run `harness-desktop`.
+
+```sh
+sudo apt install ./Harness-Desktop-0.6.0-kylin.2-linux-x86_64.deb
+```
+
+The `.deb` includes Electron, Node.js, pnpm, the published `@deepseek-ai/dsh@0.2.3-alpha.2` runtime, and offline installer `0.10.0`. The app starts an authenticated loopback Web profile and uses the existing `dsh-home` under its Electron user data directory. The offline installer appears in **Settings → Offline install** using Alpha 2's public settings section and Web route authentication. Rebuild archives declaring exact peers for an earlier Harness release before installing them on Alpha 2. Close the window to stop the Host and reopen the app to activate newly installed plugins.
+
+On the first launch after upgrading from kylin.1, the official CLI updates the embedded installer in the existing Profile. The package retains the reviewed `0.9.0` archive at the path that the Profile's previous file dependency references during this update.
+
+Build on Linux x86_64 with Node.js `24.22.3`, pnpm `11.7.0`, and the distro's native build tools. Run these commands from the Desktop repository.
+
+```sh
+pnpm install --frozen-lockfile
+pnpm run pack:linux
+pnpm run test:linux-runtime
+```
+
+The Linux manifest and frozen runtime lock are under `packaging/linux-x64/`. The Linux packaging command builds and verifies the [matching installer variant](plugins/dsh-offline-plugin-installer/compat/README.md). The staged runtime and installer are written to the integration workspace's `.artifacts/linux-desktop/`.

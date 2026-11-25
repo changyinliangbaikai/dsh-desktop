@@ -1,14 +1,15 @@
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync } from 'node:fs'
-import { dirname, join, resolve } from 'node:path'
-import { fileURLToPath } from 'node:url'
+import { join } from 'node:path'
+import { runtimeLayout } from './runtime-layout.mjs'
 
-const projectRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..')
-const runtimeRoot = join(projectRoot, 'resources', 'runtime')
-const provenance = JSON.parse(readFileSync(join(projectRoot, 'packaging', 'runtime-manifest.json'), 'utf8'))
+const linuxX64 = process.argv.includes('--linux-x64')
+const { resourcesRoot: runtimeRoot, provenancePath } = runtimeLayout(linuxX64)
+const sourceManifest = readFileSync(provenancePath)
+const provenance = JSON.parse(sourceManifest)
 const required = [
   join(runtimeRoot, 'STAGED'),
-  process.platform === 'win32'
+  !linuxX64 && process.platform === 'win32'
     ? join(runtimeRoot, 'node', 'node.exe')
     : join(runtimeRoot, 'node', 'bin', 'node'),
   join(runtimeRoot, 'dsh', 'node_modules', '@deepseek-ai', 'dsh', 'lib', 'bin.js'),
@@ -18,6 +19,9 @@ const required = [
 const missing = required.filter(path => !existsSync(path))
 if (missing.length > 0) {
   throw new Error('Staged runtime is incomplete:\n' + missing.map(path => '- ' + path).join('\n'))
+}
+if (linuxX64 && !readFileSync(join(runtimeRoot, 'runtime-manifest.json')).equals(sourceManifest)) {
+  throw new Error('Staged Linux runtime manifest does not match the pinned source manifest.')
 }
 
 const installed = JSON.parse(readFileSync(
@@ -31,14 +35,19 @@ if (installed.version !== provenance.deepSeekHarness.version) {
 if (!Array.isArray(provenance.embeddedPlugins)) {
   throw new Error('Runtime manifest embeddedPlugins must be an array.')
 }
-for (const plugin of provenance.embeddedPlugins) {
+const retainedArchives = provenance.retainedPluginArchives ?? []
+if (!Array.isArray(retainedArchives)) {
+  throw new Error('Runtime manifest retainedPluginArchives must be an array.')
+}
+for (const plugin of [...provenance.embeddedPlugins, ...retainedArchives]) {
   const archivePath = join(runtimeRoot, 'plugins', plugin.archive)
-  if (!existsSync(archivePath)) throw new Error('Embedded plugin archive is missing: ' + plugin.archive)
+  if (!existsSync(archivePath)) throw new Error('Plugin archive is missing: ' + plugin.archive)
   const actualIntegrity = 'sha512-' + createHash('sha512').update(readFileSync(archivePath)).digest('base64')
   if (actualIntegrity !== plugin.integrity) {
-    throw new Error('Embedded plugin archive failed integrity verification: ' + plugin.archive)
+    throw new Error('Plugin archive failed integrity verification: ' + plugin.archive)
   }
 }
 
-console.log('verify-staged-runtime: complete DSH ' + installed.version + ' runtime and '
-  + String(provenance.embeddedPlugins.length) + ' embedded plugin archive(s) found')
+console.log('verify-staged-runtime: complete DSH ' + installed.version + ' runtime, '
+  + String(provenance.embeddedPlugins.length) + ' embedded plugin archive(s), and '
+  + String(retainedArchives.length) + ' retained archive(s) found')
