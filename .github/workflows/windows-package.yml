@@ -102,8 +102,11 @@ jobs:
         run: pnpm run check
       - name: Install exact upstream dependency graph
         run: pnpm --dir ../.artifacts/native-desktop/upstream install --frozen-lockfile
-      - name: Check upstream peer dependencies
-        run: pnpm --dir ../.artifacts/native-desktop/upstream peers check
+      - name: Check peer dependencies of the native desktop, CLI and Host
+        run: >-
+          pnpm --dir ../.artifacts/native-desktop/upstream
+          --filter "@deepseek-ai/dsh-desktop..." --filter "@deepseek-ai/dsh..."
+          --filter "@deepseek-ai/dsh-desktop-host..." peers check
       - name: Restore exact native preparation
         id: native-cache
         uses: actions/cache/restore@v4

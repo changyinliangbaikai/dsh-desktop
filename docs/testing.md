@@ -101,16 +101,20 @@ before a repair; do not automatically delete user profiles or bypass endpoint po
 
 ## Native Windows offline acceptance
 
-The main Windows workflow installs the immutable previous 0.5.0-native.1 release, then
+The Windows workflow checks the source dependency graph of the Desktop app, CLI,
+Desktop Host and their dependencies. Upstream's full workspace also contains
+experimental packages outside that graph. The installed package and final runtime
+checks exercise the delivered graph separately.
+
+The Windows workflow installs the previous `0.6.0-native.5` release, then
 upgrades it with the new EXE through NSIS in the same Unicode path. It
 checks a working outbound probe, blocks both installed application executables and Office
-engine except loopback, and verifies the same probe is blocked. It opens the
-bundled bilingual DOCX as `自我介绍.docx` from a Unicode workspace with Unicode
-TEMP/TMP paths. It tests close/restore/quit, then runs the standalone diagnostic
-ZIP against the installed executable in Windows PowerShell 5.1. The unmodified
-upstream `dsh.cmd --version` must run offline and report the pinned version; its
-fixed original EXE name is backed by an exact copy of the final intranet executable. The original
-final-layout DOCX/XLSX/PPTX, CLI and offline-plugin/restart gates remain required.
+engine except loopback, and verifies the same probe is blocked. It tests
+close, restore and quit. The upstream `dsh.cmd --version` must report the
+pinned version offline, using an exact copy of the intranet executable.
+Final-layout payload, CLI and offline-plugin restart checks run by default.
+Set `validateOffice` to exercise DOCX/XLSX/PPTX conversion, the standalone
+diagnostic and the `自我介绍.docx` preview in a Unicode workspace.
 This is application-specific network blocking on Windows Server 2022, not a
 customer Windows 10 or physical air-gap claim.
 

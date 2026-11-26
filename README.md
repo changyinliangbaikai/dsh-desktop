@@ -51,7 +51,7 @@ pnpm install --frozen-lockfile
 npm --prefix plugins/dsh-offline-plugin-installer ci
 pnpm run check
 pnpm --dir ../.artifacts/native-desktop/upstream install --frozen-lockfile
-pnpm --dir ../.artifacts/native-desktop/upstream peers check
+pnpm --dir ../.artifacts/native-desktop/upstream --filter "@deepseek-ai/dsh-desktop..." --filter "@deepseek-ai/dsh..." --filter "@deepseek-ai/dsh-desktop-host..." peers check
 pnpm run native:stage
 pnpm run native:overlay
 pnpm run pack:win
