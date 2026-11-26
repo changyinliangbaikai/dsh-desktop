@@ -13,7 +13,7 @@ export interface OfflineInstallerPageInjected {
 }
 
 export type OfflineInstallerPageProps =
-  PropsRuntime<'settings.plugins.tab'>
+  PropsRuntime<'settings.section'>
   & PropsLocale<'settings.offlinePluginInstaller'>
   & InjectFace<OfflineInstallerPageInjected>
 
@@ -50,7 +50,7 @@ function validateFile(
   return undefined
 }
 
-/** Explicit upload-and-install tab in Settings > Plugins. */
+/** Explicit upload-and-install page in Settings. */
 export function OfflineInstallerPage(props: OfflineInstallerPageProps): ReactNode {
   const { installPackage, loadSession, t } = props
   const inputRef = useRef<HTMLInputElement>(null)

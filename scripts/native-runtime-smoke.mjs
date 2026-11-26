@@ -5,6 +5,7 @@ import { mkdirSync, writeFileSync, readFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join, delimiter } from 'node:path';
 import { pathToFileURL, fileURLToPath } from 'node:url';
+import { parseDshReadyUrl } from '../dist/main/ready-url.js';
 
 const root = process.argv[2];
 process.env.DSH_CLIENT_VERSION = JSON.parse(readFileSync(join(root, 'desktop-runtime.json'), 'utf8')).release.version;
@@ -20,7 +21,7 @@ writeFileSync(join(profileDir, 'cordis.patch.yml'), '- id: webserver\n  config:\
 const installAnchor = join(root, 'node_modules/@deepseek-ai/dsh/package.json');
 const runtime = process.argv[3];
 const launch = () => runProfile({
-  environment: loadLayeredEnv('dsh'), profile: 'desktop', resolutionMode: 'runtime',
+  environment: loadLayeredEnv('dsh'), profile: 'desktop',
   resolvedProfile: { profile: loadProfileDirectory('dsh', profileDir, installAnchor), installAnchor }, patchFiles: [], args: ['--no-open', '--port', '0'],
   packageManager: { command: process.execPath, args: ['--expose-internals', join(runtime, 'primary-runtime/dependencies/pnpm/bin/pnpm.mjs')],
     env: { ELECTRON_RUN_AS_NODE: '1', DSH_DESKTOP_NODE_EXECUTABLE: process.execPath,
@@ -29,9 +30,15 @@ const launch = () => runProfile({
 const { ctx, shutdown } = await launch();
 let result;
 try {
-  const ready = ctx.connection.authenticatedUrl(`http://127.0.0.1:${ctx.webServer.port}`);
+  const entries = [];
+  ctx.emit(ctx.webServer, 'webserver/entry-url', `http://127.0.0.1:${ctx.webServer.port}/`, entries);
+  const web = entries.find(entry => entry.label === 'dsh web');
+  assert.ok(web, 'The real Host must announce an authenticated Web entry');
+  const ready = parseDshReadyUrl(`dsh web: ${web.url}`);
   const login = await fetch(ready, { redirect: 'manual' });
+  assert.equal(login.status, 303, 'The Host must exchange the Web token for a cookie');
   const cookie = login.headers.getSetCookie().map(value => value.split(';')[0]).join('; ');
+  assert.ok(cookie, 'The authenticated Web entry must return a cookie');
   const response = await fetch(new URL('/', ready), { headers: { cookie } });
   assert.equal(response.status, 200);
   const html = await response.text();
@@ -49,7 +56,8 @@ try {
   const archive = join(process.env.DSH_HOME, 'smoke-plugin.tgz');
   execFileSync('tar', ['--format=ustar', '-czf', archive, '-C', join(fixtures, 'offline-plugin'), 'package']);
   const install = await fetch(new URL('/dsh-offline-plugin-installer/install.tgz', ready), {
-    method: 'POST', headers: { cookie, 'content-type': 'application/gzip', 'x-dsh-plugin-filename': 'smoke.tgz', 'x-dsh-installer-token': installer.token },
+    method: 'POST', headers: { cookie, origin: new URL(ready).origin, 'content-type': 'application/gzip',
+      'x-dsh-plugin-filename': 'smoke.tgz', 'x-dsh-installer-token': installer.token },
     body: readFileSync(archive),
   });
   const installed = await install.json();

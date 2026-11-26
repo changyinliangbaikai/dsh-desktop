@@ -1,7 +1,8 @@
 {
   "repository": "https://github.com/deepseek-ai/deepseek-harness.git",
-  "commit": "22ddee3792402c3e70ec5f86a63c3e3e895a2f60",
-  "version": "0.2.1-rc.3",
+  "commit": "4b399c39a6d1479cd84ca591b4d7c88e24d38a96",
+  "version": "0.2.3-alpha.2",
+  "tag": "dsh-v0.2.3-alpha.2",
   "target": "win-x64",
   "appId": "io.github.changyinliangbaikai.dsh-desktop.native",
   "presets": [
@@ -12,26 +13,25 @@
   "embeddedPlugins": [
     {
       "name": "dsh-offline-plugin-installer",
-      "version": "0.9.0",
-      "archive": "dsh-offline-plugin-installer-0.9.0.tgz",
-      "integrity": "sha512-Ma0QudmVgsNRr+YZj2Quo65ytVrvkK/h0rcdNGX9p6rYqcR/uT+Ht7vitIXkc2Jg/qFzREGT781Sg9soedN/ww==",
+      "version": "0.10.0",
+      "archive": "dsh-offline-plugin-installer-0.10.0.tgz",
+      "integrity": "sha512-bqc2vWT5QRyHB/4Wkyxtz+KPM+uYKG/Q59EMBKdZmTYGaxD4fW40Bp7bBjpRl45oJG2MSNp0+0qEz068DwAyIw==",
       "profile": "desktop"
     }
   ],
-  "sourceStatus": "unreleased-snapshot",
+  "sourceStatus": "tagged-release",
   "officeKit": {
-    "version": "0.1.5",
-    "integrity": "sha512-H12xtUsAyl70zFeQ5pk5GGRc3N1+6zn+DVAcqwlguI6EvqopBGP3xkUmePU7g5f6ydYlDZLWedHT9lTSL7zLxA==",
-    "entrySha256": "5583ce1754084cb63be913e67821282f484a14b43744f777fd10731af67e3c60",
+    "version": "0.2.3",
+    "integrity": "sha512-MbpucYPrZpeec/smy7u8Z066JeQU6lMVK6A1oysUv1R/OATDvtlVmrsIlfcIz6bVbfJVpgregIK86dOdat9qdA==",
+    "entrySha256": "8e8003c76fde812d90f64e486f2e9d7b40370def6c2bcb305996f0e316cec50b",
     "windowsEngine": {
       "name": "@deepseek-ai/libreoffice-kit-win32-x64",
-      "version": "0.1.5",
-      "integrity": "sha512-uKuDGZdofxuW4iRmUh8b3+XWU28JeOCYMTAONzo7tEHIq00DV2cARcgUYiTP7gUH49tH4A/RyPMOVEBzK7qjjw==",
-      "executableSha256": "4b60b337f493421cd3b8690c9706494df620d6ba265b99c0cc6ab22b88cb6fd7"
+      "version": "0.2.3",
+      "integrity": "sha512-GMW+m/09Ts0m4gRUjIckeRN48OVYgJI7aLG1uoUHcG3LRPDsKnsyeRo+BSQn8rh4CmWtJg5c6qtl0uSW7b9zEg==",
+      "executable": "bin/dsoffice.exe",
+      "executableSha256": "c9597966fe8db459e2d1cc0fefe5c070f10957349c4dd3daab211219eb75f933"
     }
   },
-  "npmIntegrity": "sha512-H+E9HLnHf7fJqzen84Z9Bq8ggb5xbrcbyhZjXTJLE9NabHr3zteGvTRvdvGkxPl4ov80is4WLglFmSo+/olJjg==",
-  "baseTag": "dsh-v0.2.1-rc.3",
-  "baseTagCommit": "1f81c047fc48fa190a683e469daa699857e9afe8",
-  "nodeMinimum": "24.9.0"
+  "npmIntegrity": "sha512-mi5hq96nk5x6HPU6gkcHSUZEKs0/xoyd8MV7GCTDpULYlcJVIUkfn5JiNv+UAMaV22VO4VQwbLWnjkFBV5b/ig==",
+  "nodeMinimum": "24.22.3"
 }

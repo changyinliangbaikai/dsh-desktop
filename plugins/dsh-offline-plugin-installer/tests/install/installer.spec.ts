@@ -14,8 +14,8 @@ const policy: ArchivePolicy = {
   maxUploadBytes: 1024 * 1024,
   maxExpandedBytes: 2 * 1024 * 1024,
   maxArchiveEntries: 100,
-  expectedHarnessVersion: '0.2.1-rc.3',
-  expectedCordisVersion: '4.0.5',
+  expectedHarnessVersion: '0.2.3-alpha.2',
+  expectedCordisVersion: '4.2.0-alpha.1',
   allowedPackagePrefixes: [],
 }
 

@@ -25,6 +25,7 @@ function t(key: OfflineInstallerLocaleKey): string { return zh[key] }
 
 function props(overrides: Partial<OfflineInstallerPageProps> = {}): OfflineInstallerPageProps {
   return {
+    close: () => {},
     t,
     loadSession: () => Promise.resolve(session),
     installPackage: () => Promise.resolve(success),

@@ -33,6 +33,9 @@ jobs:
     outputs:
       artifact-id: ${{ steps.upload-installer.outputs.artifact-id }}
       version: ${{ steps.upstream.outputs.version }}
+      harness-tag: ${{ steps.upstream.outputs.harness-tag }}
+      harness-commit: ${{ steps.upstream.outputs.commit }}
+      installer-version: ${{ steps.upstream.outputs.installer-version }}
     defaults:
       run:
         working-directory: Dsh-Desktop
@@ -52,6 +55,9 @@ jobs:
         run: |
           $pin = Get-Content packaging/native-upstream.json | ConvertFrom-Json
           "commit=$($pin.commit)" >> $env:GITHUB_OUTPUT
+          "harness-tag=$($pin.tag)" >> $env:GITHUB_OUTPUT
+          "installer-version=$($pin.embeddedPlugins[0].version)" >> $env:GITHUB_OUTPUT
+          "node=$($pin.nodeMinimum)" >> $env:GITHUB_OUTPUT
           "DSH_CLIENT_VERSION=$($pin.version)" >> $env:GITHUB_ENV
           $package = Get-Content package.json | ConvertFrom-Json
           "version=$($package.version)" >> $env:GITHUB_OUTPUT
@@ -67,7 +73,7 @@ jobs:
           package_json_file: Dsh-Desktop/package.json
       - uses: actions/setup-node@v6
         with:
-          node-version: 24.19.0
+          node-version: ${{ steps.upstream.outputs.node }}
           cache: pnpm
           cache-dependency-path: |
             Dsh-Desktop/pnpm-lock.yaml
@@ -102,7 +108,7 @@ jobs:
         id: native-cache
         uses: actions/cache/restore@v4
         with:
-          key: native-windows-2022-node24.19-pnpm11.28-local-v4-${{ steps.upstream.outputs.commit }}
+          key: native-windows-2022-node${{ steps.upstream.outputs.node }}-pnpm11.28-local-v5-${{ steps.upstream.outputs.commit }}
           path: |
             .artifacts/native-desktop/upstream/apps/desktop/lib
             .artifacts/native-desktop/upstream/apps/desktop/.desktop-build/targets/win-x64/dsh
@@ -147,15 +153,16 @@ jobs:
           $installed = Join-Path $root 'installed 中文'
           $env:DSH_HOME = Join-Path $root 'installer-profile'
           $previous = Join-Path $root 'previous-native06.exe'
-          Invoke-WebRequest 'https://github.com/changyinliangbaikai/dsh-desktop/releases/download/desktop-v0.6.0-native.4/Harness-Desktop-Intranet-0.6.0-native.4-x64.exe' -OutFile $previous
-          if ((Get-FileHash $previous -Algorithm SHA256).Hash.ToLowerInvariant() -ne '5aca3b4a24ec66cf3332cf08776552dbe9376235605b3fe84439441aba8a6382') { throw 'Previous release digest mismatch' }
+          Invoke-WebRequest 'https://github.com/changyinliangbaikai/dsh-desktop/releases/download/desktop-v0.6.0-native.5/Harness-Desktop-Intranet-0.6.0-native.5-x64.exe' -OutFile $previous
+          if ((Get-FileHash $previous -Algorithm SHA256).Hash.ToLowerInvariant() -ne 'e0325115a0571665448e1cd2ab532de9302f7a97a0edbd00eeea8f3c5006d11f') { throw 'Previous release digest mismatch' }
           $oldSetup = Start-Process -FilePath $previous -ArgumentList @('/S', "/D=$installed") -Wait -PassThru
           if ($oldSetup.ExitCode -ne 0) { throw 'Previous NSIS installation failed' }
           $setup = Start-Process -FilePath $installer[0].FullName -ArgumentList @('/S', "/D=$installed") -Wait -PassThru
           if ($setup.ExitCode -ne 0) { throw 'NSIS installation failed' }
           $application = (Get-Item (Join-Path $installed 'Harness Desktop Intranet.exe')).FullName
           $cliApplication = (Get-Item (Join-Path $installed 'DeepSeek Harness.exe')).FullName
-          $engine = (Get-Item (Join-Path $installed 'resources/app.asar.unpacked/dsh/node_modules/@deepseek-ai/libreoffice-kit-win32-x64/bin/libreoffice-kit.exe')).FullName
+          $pin = Get-Content packaging/native-upstream.json | ConvertFrom-Json
+          $engine = (Get-Item (Join-Path $installed "resources/app.asar.unpacked/dsh/node_modules/$($pin.officeKit.windowsEngine.name)/$($pin.officeKit.windowsEngine.executable)")).FullName
           $env:PREVIEW_DIAG_APP = $installed
           node scripts/native-network-probe.mjs allowed
           if ($LASTEXITCODE -ne 0) { throw 'Cannot establish network baseline' }
@@ -166,7 +173,6 @@ jobs:
           New-NetFirewallRule -DisplayName 'DSH installed Office offline acceptance' -Direction Outbound -Action Block -Program $engine -RemoteAddress $remote | Out-Null
           node scripts/native-network-probe.mjs blocked
           if ($LASTEXITCODE -ne 0) { throw 'Application outbound block did not apply' }
-          $pin = Get-Content packaging/native-upstream.json | ConvertFrom-Json
           $launcher = Join-Path $installed 'resources/runtime/cli/bin/dsh.cmd'
           $cliVersion = ((& $launcher --version) | Out-String).Trim()
           if ($LASTEXITCODE -ne 0 -or $cliVersion -ne $pin.version) { throw 'Installed native CLI version check failed' }
@@ -244,16 +250,14 @@ jobs:
           prerelease: true
           fail_on_unmatched_files: true
           body: |
-            Native DeepSeek Harness 0.2.1-rc.3 source snapshot at 22ddee3792402c3e70ec5f86a63c3e3e895a2f60, newer than the published dsh-v0.2.1-rc.3 tag (1f81c047fc48fa190a683e469daa699857e9afe8). Upstream source, native main.js and Host remain unchanged.
+            Unsigned Windows x64 installer built from the unchanged upstream ${{ needs.package-windows.outputs.harness-tag }} source at ${{ needs.package-windows.outputs.harness-commit }}.
 
-            Windows x64 unsigned pilot. Both the original DeepSeek search provider and the new combined Search/Fetch API provider are disabled by default; HTTP Web fetch remains available. Product analytics collection is disabled. No automatic update feed or upstream mandatory-update policy is embedded. Includes offline installer 0.9.0 in the active Desktop Profile. Older exact-peer plugin archives must be rebuilt for Harness 0.2.1-rc.3 and Cordis 4.0.5. Offline-installer storage needs no migration. The slots type package stays development-only; the original renderer supplies the runtime service. The original tray hides the window after its first-close acknowledgement, restores it on click, and offers Exit.
+            Includes offline installer ${{ needs.package-windows.outputs.installer-version }} under Settings → Offline install. Rebuild plugin archives that target older exact Harness or Cordis versions. The upstream tray hides the window on close, restores it on click, and offers Exit. Both search providers and analytics are disabled by default. HTTP Web fetch remains available.
 
-            The unsigned build uses upstream local build provenance and its local-package staging script. Custom integrations must import profile templates from dsh-official-bundles and migrate retired tools.mode / DSH_TOOLS_MODE overrides to executor-plugin presets. No upstream compatibility tag is assigned to this untagged snapshot. This release follows the latest upstream rc.3 native Desktop snapshot and freshly resolves the plugin dependencies against Cordis 4.0.5 / Schemastery 3.18.5. It preserves the existing intranet install identity and unchanged terminal launcher. CI verifies the actual NSIS upgrade from 0.6.0-native.4, offline CLI version, authenticated plugin installation and activation after restart, all search-disabled preset registries, and native window close/restore/quit. Final runtime bytes, native dependencies, pnpm, PTY and search executables are checked.
+            CI checks the installed upgrade from 0.6.0-native.5, offline CLI and authenticated plugin installation and restart, search-disabled presets, and native window close, restore and quit. The unchanged terminal launcher uses the bundled executable alias.
 
-            Word preview is already confirmed working by the customer after installing the current x64 Microsoft Visual C++ runtime. Subsequent builds skip Office conversion and Word preview checks by default at the customer's request. Resource hashes are still verified. The optional diagnostic ZIP remains available; the evidence records whether diagnostics were requested or skipped. LibreOffice Kit / Windows engine 0.1.5 are bundled. The Microsoft x64 Visual C++ v14 runtime remains a separate prerequisite. Source/plugin development requires Node >=24.9.0; the installer includes its own Node runtime, whose actual version is checked before publication.
+            Office resource hashes are verified. Word preview and conversion tests are opt-in. The Microsoft x64 Visual C++ v14 runtime is a separate prerequisite. The diagnostic ZIP and checksum list accompany the installer.
 
-            Dependency audit reports known findings in the pinned upstream/development graph. These are tracked separately from functional gates; no upstream dependency overrides are applied.
-
-            Download the EXE and compare SHA256SUMS.txt. The installer is unsigned. Hosted Windows checks do not replace customer intranet model connectivity or manual tray interaction. Back up existing Harness data before testing; session-format downgrade is not guaranteed.
+            Download the EXE and compare SHA256SUMS.txt. Validate manual tray interaction and model connectivity on the target intranet before rollout.
           files: |
             release-files/*

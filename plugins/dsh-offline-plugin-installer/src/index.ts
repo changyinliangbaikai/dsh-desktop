@@ -1,7 +1,6 @@
 import { randomBytes } from 'node:crypto'
 import type { Context } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-host-webserver'
-import type {} from '@deepseek-ai/dsh-client-connection'
 import type { InstallerSessionSnapshot } from './api/types.js'
 import { Config, resolveConfig, type Config as PluginConfig } from './config.js'
 import { createInstallerRoutes } from './http/routes.js'
@@ -12,7 +11,7 @@ import { OfflinePackageInstaller } from './install/installer.js'
 import { ArchiveStore } from './store/archive-store.js'
 
 export const name = 'dsh-offline-plugin-installer'
-export const inject = ['webServer', 'connection', 'profileContext']
+export const inject = ['webServer', 'profileContext']
 export { Config }
 export type { PluginConfig }
 
@@ -73,11 +72,7 @@ export async function apply(ctx: Context, config: PluginConfig): Promise<void> {
   })
   for (const route of routes) {
     ctx.effect(
-      () => ctx.webServer.register({ ...route, handler: (request, response) => {
-        const rejection = ctx.connection.requestRejection(request)
-        if (rejection !== undefined) { response.writeHead(rejection); response.end(); return }
-        return route.handler(request, response)
-      } }),
+      () => ctx.webServer.register({ ...route, auth: 'required' }),
       `dsh-offline-plugin-installer:route:${route.path}`,
     )
   }

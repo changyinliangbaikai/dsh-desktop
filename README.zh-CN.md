@@ -2,17 +2,17 @@
 
 [English](README.md)
 
-Windows 构建使用固定的 DSH 原生桌面客户端 **0.2.1-rc.3**，上游提交 `22ddee3792402c3e70ec5f86a63c3e3e895a2f60`。下游测试版本 **0.6.0-native.5**，Windows x64，未签名。上游源码及原生 main.js 保持不变。Linux x86_64 构建通过下游 Electron 壳运行官方 Web Profile。
+Windows x64 和 Linux x86_64 使用同一个 Harness 版本 **0.2.3-alpha.2**，对应上游标签提交 `4b399c39a6d1479cd84ca591b4d7c88e24d38a96`。Windows **0.6.0-native.6** 从该标签构建原生客户端，Linux **0.6.0-kylin.2** 通过下游 Electron 壳运行官方 npm 运行时。两端内置同一份离线安装器 `0.10.0`。
 
-本次固定 `dsh-v0.2.1-rc.3` 标签之后的最新源码快照。产品版本仍为 rc.3，但实际源码为上述 `22ddee3` 提交，并非已发布标签对应的 `1f81c04`。离线安装插件使用重新解析的独立 npm 锁文件和精确的 0.2.1-rc.3 依赖；旧 Harness 版本的插件包需重建后安装。运行时依赖解析为 LibreOffice Kit 0.1.5 和 Windows 引擎 0.1.5，使用匹配的官方 Windows 引擎包；打包时核对版本及入口/引擎文件哈希。客户已确认更新客户端和 x64 运行库后 Word 预览恢复正常，后续构建按要求默认跳过该专项验证。
+Windows 为未签名内网测试包，内置 LibreOffice Kit 和 Windows 引擎 `0.2.3`。打包核对转换入口和引擎文件哈希。Word 预览与转换验证默认关闭，可按需开启。
 
 ## 本版行为
 
-- 采用上游 ASAR 打包及完整 Office 依赖解包方式，LibreOffice Kit 升至 0.1.5。无需运行时下载引擎或另外安装 Office。
+- 采用上游 ASAR 打包及完整 Office 引擎解包方式，转换组件随安装包提供。
 - Windows 的 Office 转换还依赖 x64 Microsoft Visual C++ v14 运行库，上游转换组件未捆绑它。干净内网电脑需提前从[微软官方下载页](https://learn.microsoft.com/en-us/cpp/windows/latest-supported-vc-redist)准备离线安装程序，并先安装运行库。构建机自带开发运行库，不能据此认定客户 Win10 已满足此条件。
 - 使用上游原生托盘，首次关闭确认框显示在主窗口内；确认后，Windows 关闭按钮隐藏窗口到右下角托盘。左键点击恢复窗口；右键菜单可打开窗口或退出。退出仍由原生客户端清理 Host 和子进程。
-- 内置独立插件 `dsh-offline-plugin-installer@0.9.0`，入口为“设置 → 插件 → 离线安装”。使用当前 desktop Profile 和客户端自带 pnpm，禁用联网与安装脚本。安装后需从托盘选择退出，再重新启动才能加载；仅关闭窗口不会重启。
-- 旧插件声明的精确 Harness 版本与本版不一致时会被拒绝，必须针对 0.2.1-rc.3 重建。依赖未在离线存储中准备好的包无法安装。插件数据无需迁移，但更高版本 Harness 写入的会话不承诺可降级。
+- 内置插件入口为“设置 → 离线安装”。使用当前 Desktop Profile 和客户端自带 pnpm，禁用联网和安装脚本。安装后从托盘退出并重新启动客户端，插件即会加载。
+- 声明旧版精确依赖的插件包须针对 Harness `0.2.3-alpha.2` 和 Cordis `4.2.0-alpha.1` 重建。第三方依赖需提前准备到离线存储。现有离线安装器的归档存储可继续使用。
 - 通过打包配置默认关闭新增的产品使用统计。
 - 原有 `web-search-deepseek` 和新增的 `web-deepseek-api` 提供方均默认停用，完整预设中不注册搜索工具。新增提供方同时包含可选的 API 网页读取；默认的 HTTP `web_fetch` 继续保留。模型地址和其他功能不因此自动变成离线模式。
 - 不携带自动更新源和上游强制更新策略。请手动安装新的 GitHub 测试版本。
@@ -23,8 +23,6 @@ Windows 构建使用固定的 DSH 原生桌面客户端 **0.2.1-rc.3**，上游�
 
 上游 0.2.1 移除了运行时 invariant 插件及 `./invariant` 导出。引用这些入口的自定义
 Profile 或扩展需调整；覆盖旧输入区 `stats` 行的扩展需迁移到 `activity`、`usage`。
-旧版插件包需针对 Harness 0.2.1-rc.3 和 Cordis 4.0.5 重建，离线安装器的
-归档存储无需迁移。
 
 ## 构建与验证
 
@@ -34,11 +32,11 @@ Profile 或扩展需调整；覆盖旧输入区 `stats` 行的扩展需迁移到
 
 Word 预览、Office 转换和诊断工具执行默认跳过，证据明确记录跳过状态；诊断 ZIP 仍随包提供。需要专项排查时，在工作流勾选 `validateOffice`，或在 staging 和 verify 前设置 `DSH_VALIDATE_OFFICE=1`。默认准备流程调用未修改的上游构建命令，并使用其 `prepare:dsh --defer-runtime-smoke` 参数延后包含 Office 转换的综合检查，最终运行时、Profile 和窗口检查仍会执行。
 
-交互式托盘点击、安装卸载、界面观感及甲方内网模型连接仍属于实机验收。原有壳源码保留作回归参考，但不作为本版入口。此候选版本不推进工作区 `workspace.lock.json` 的全插件兼容基线。
+交互式托盘点击、卸载、界面观感及甲方内网模型连接仍属于实机验收。当前 Windows 构建读取 `packaging/native-upstream.json`。`packaging/runtime-manifest.json` 记录的是历史桌面壳。 [原生构建说明](docs/native-desktop.md)
 
 ## Win10 仍然预览失败时
 
-从 Releases 下载对应的 `Dsh-Office-Diagnostics-0.6.0-native.5.zip`，解压到可写目录，
+下载对应版本的 `Dsh-Office-Diagnostics-<桌面版本>.zip`，解压到可写目录，
 保持客户端打开，双击 `diagnose-office.cmd`。如弹出选择框，请选择已安装的客户端 EXE。
 最长约五分钟，完成后将同目录 `diagnostic-result.json` 发回。工具只转换自带的中英文测试文档，
 不读取您的 DOCX，不需要联网或另外安装 Node/Office；报告可区分资源缺失、底层转换错误、
@@ -47,10 +45,7 @@ Word 预览、Office 转换和诊断工具执行默认跳过，证据明确记�
 
 上游从 alpha.2 起将 pnpm 合并到 `runtime/primary-runtime/dependencies/pnpm`；验收脚本跟随新布局，插件继续通过公开的 `profileContext.packageManager` 调用。自定义 Profile 若仍包含已移除的子代理 `backgroundMode` 设置或 `DSH_TOOLS_MODE=both`，需按上游当前配置模式更新。Desktop 使用 pnpm 11.7.0，上游独立使用其固定的 pnpm 11.28.5。
 
-本次 rc.3 快照使用 Cordis 4.0.5、Schemastery 3.18.5，并重新解析独立插件锁文件。上游现在优先检查
-显式 `engines.dsh`，未提供时检查 DSH peers；本离线安装器继续执行既定的精确 peer
-校验，旧插件包需针对固定的 Harness/Cordis 版本重建，不使用兼容豁免或放宽校验。
-认证请求接纳和包安装仍使用上游公开接口，不复制上游认证或插件管理实现。
+本版使用 Cordis `4.2.0-alpha.1` 和 Schemastery `3.20.0-alpha.1`，离线安装器保留独立 npm 锁。设置页改用公开的 `settings.section` 注册方式，自定义 Host 路由应通过 WebServer 接口声明鉴权要求。归档校验和安装仍通过公开插件接口与官方包管理操作完成。
 
 从 alpha.4 起原生运行时不再附带独立的 slots 包。离线安装器仅将 `dsh-client-ui-slots`
 用于 TypeScript 类型和模块扩展，因此改为精确开发依赖；构建后的 Host/浏览器入口
@@ -59,8 +54,7 @@ Word 预览、Office 转换和诊断工具执行默认跳过，证据明确记�
 
 未签名构建已跟随上游改用 `build --profile local` 和
 `pack-local-packages.ts`；原生客户端、Host 和内置包均来自未修改的固定源码，
-不声称具备上游官方发布身份。缓存也区分该构建模式。此快照没有对应上游标签，
-因此不将 rc.3 发布标签用作该快照的兼容标签。
+构建缓存也区分这一构建模式。
 
 上游已将 `PROFILE_TEMPLATES`、`DEFAULT_PROFILE_BUNDLES` 从 `dsh-app-boot`
 迁移到公开的 `dsh-official-bundles` 包，自定义集成需更新导入。
@@ -73,8 +67,7 @@ Web 首页注入现在要求已验证的请求 Peer 上下文。自定义 Web �
 `renderIndex` / `collectIndexInjections` 时需传递该上下文。Desktop 验收直接
 检查认证后的实际 HTTP 页面，由原生服务器处理请求身份。
 
-本快照最低要求 Node 24.9，构建工程和内置插件清单已同步此要求。Windows 安装包
-自带运行时，无需额外安装 Node；发布前会读取实际 Electron 内的 Node 版本核对。
+Harness 和离线安装器要求 Node `^24.22.3 || >=26.13.1`。Windows 安装包自带运行时，打包检查会读取 Electron 实际携带的 Node 版本。
 
 ## 银河麒麟 V10 Linux x86_64
 
@@ -96,6 +89,6 @@ pnpm run pack:linux
 pnpm run test:linux-runtime
 ```
 
-Linux 的版本清单和冻结依赖锁位于 `packaging/linux-x64/`。打包命令会构建并核验[匹配的安装器版本](plugins/dsh-offline-plugin-installer/compat/README.md)，运行时和安装包输出至集成工作区的 `.artifacts/linux-desktop/`。
+Linux 的版本清单和冻结依赖锁位于 `packaging/linux-x64/`。打包时复现两端共用的离线安装器及升级所需历史归档，运行时和安装包输出至 `.artifacts/linux-desktop/`。 [归档说明](plugins/dsh-offline-plugin-installer/compat/README.md)
 
 每次推送或更新拉取请求时，GitHub 的 **Actions → Linux package** 会在 glibc 2.31 基线上构建。打包后的运行时通过检查后，可在对应运行的 **Artifacts** 中下载 **harness-desktop-linux-x86_64**，其中包含 `.deb` 和 `SHA256SUMS.txt`。

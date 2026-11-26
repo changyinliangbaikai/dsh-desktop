@@ -4,7 +4,7 @@
 
 ```mermaid
 flowchart LR
-  Page[Plugins settings tab]
+  Page[Offline install settings section]
   Routes[Loopback Host routes]
   Validator[Streaming tarball validator]
   Store[Profile-local archive store]

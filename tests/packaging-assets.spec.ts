@@ -97,6 +97,17 @@ describe('packaging assets', () => {
     }])
   })
 
+  it('pins the same Harness release and reviewed installer on both active desktop targets', () => {
+    const packagingRoot = join(projectRoot, 'packaging')
+    const windows = JSON.parse(readFileSync(join(packagingRoot, 'native-upstream.json'), 'utf8'))
+    const linux = JSON.parse(readFileSync(join(packagingRoot, 'linux-x64', 'runtime-manifest.json'), 'utf8'))
+    expect(windows).toMatchObject(linux.deepSeekHarness)
+    expect(windows.embeddedPlugins).toEqual(linux.embeddedPlugins.map((plugin: Record<string, unknown>) => ({
+      ...plugin,
+      profile: 'desktop',
+    })))
+  })
+
   it('retains the original installer archive at the file dependency used by existing Linux Profiles', () => {
     const packagingRoot = join(projectRoot, 'packaging')
     const manifest = JSON.parse(readFileSync(join(packagingRoot, 'linux-x64', 'runtime-manifest.json'), 'utf8'))

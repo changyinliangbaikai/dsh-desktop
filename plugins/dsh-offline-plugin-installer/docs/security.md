@@ -31,4 +31,4 @@ Only one package operation may run. The default operation is the published imple
 - A trusted package publisher and distribution/signing procedure remain deployment responsibilities. SHA-256 is displayed for comparison but no signature format is imposed.
 - Windows process-tree behavior requires Windows CI and native acceptance.
 - A successful install does not prove that the installed plugin is safe, starts successfully after restart, or passes subjective UI review.
-- Both routes require the active Host connection authentication, then loopback/same-origin checks. Mutations additionally require the per-process installer token. Native Desktop forwards its own authenticated Host cookie; arbitrary unauthenticated requests cannot retrieve the token. Network-exposed binding remains forbidden.
+- Both routes declare WebServer authentication as required before the loopback and same-origin checks. Mutations additionally require the per-process installer token. The Web session supplies the authority-bound Harness cookie. Unauthenticated requests are refused before the session handler can issue a token. Network-exposed binding remains forbidden.

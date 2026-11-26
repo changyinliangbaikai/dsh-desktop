@@ -1,4 +1,4 @@
-/** Browser half: an offline installation tab in the standard Plugins settings section. */
+/** Browser half: an offline installation page in Harness Settings. */
 import type { Context as ClientContext } from '@deepseek-ai/cordis'
 import type {} from '@deepseek-ai/dsh-client-locale/client'
 import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
@@ -42,8 +42,8 @@ export function apply(ctx: ClientContext): void {
     loadSession: loadInstallerSession,
     installPackage: installOfflinePackage,
   })
-  ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
-    name: 'settings.plugins.tab',
+  ctx.slots.inject('settings.section', () => ctx.slots.register({
+    name: 'settings.section',
     id: 'offline-install',
     order: 20,
     label: () => t('tab'),

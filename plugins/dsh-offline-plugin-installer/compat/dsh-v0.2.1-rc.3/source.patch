@@ -1,0 +1,539 @@
+diff --git b/README.md a/README.md
+index 11e1ea8..abb966c 100644
+--- b/README.md
++++ a/README.md
+@@ -1,6 +1,6 @@
+ # dsh-offline-plugin-installer
+
+-`dsh-offline-plugin-installer` adds an **Offline install** page to DeepSeek Harness Web Settings. Select a built npm `.tgz` to validate the archive and store it in the target Profile. The Host invokes the official `dsh plugin --profile … add …` path with networking and lifecycle scripts disabled. The new plugin is available after the Profile restarts.
++`dsh-offline-plugin-installer` adds an **Offline install** tab to DeepSeek Harness Web Settings → Plugins. A user selects a built npm `.tgz`; the Host validates the archive, stores it inside the target Profile, and invokes the official `dsh plugin --profile … add …` path with networking and lifecycle scripts disabled. The new plugin is available after the Profile restarts.
+
+ This is an independently buildable DSH npm package whose source is retained in
+ the Harness Desktop repository. It shares the Desktop Git history and release,
+@@ -10,20 +10,20 @@ without reimplementing its behavior.
+
+ ## Supported stack
+
+-- DeepSeek Harness `0.2.3-alpha.2`
+-- Cordis `4.2.0-alpha.1`
+-- Node `^24.22.3 || >=26.13.1`
++- DeepSeek Harness `0.2.1-rc.3`
++- Cordis `4.0.5`
++- Node `>=24.9.0`
+
+ All DSH and Cordis peer dependencies are exact. A different Harness baseline requires a new compatible plugin release and assembled-profile verification.
+
+-Version `0.10.0` targets Harness `0.2.3-alpha.2`. Archives declaring older exact DSH peers must be rebuilt. No installer-storage migration is required. The configured Profile must match the active launcher Profile. Default installation uses the published `dsh-plugin-manager/operations` API shared by the official CLI, including its Profile lock and bundle reconciliation. Native Desktop supplies its own pnpm invocation through `profileContext`; no PATH pnpm or recursive Desktop Host launch is required. Both routes declare the WebServer's required authentication policy before applying the existing loopback, same-origin, and mutation-token checks.
++Version `0.9.0` targets Harness `0.2.1-rc.3`. Archives declaring older exact DSH peers must be rebuilt. No installer-storage migration is required. The configured Profile must match the active launcher Profile. Default installation uses the published `dsh-plugin-manager/operations` API shared by the official CLI, including its Profile lock and bundle reconciliation. Native Desktop supplies its own pnpm invocation through `profileContext`; no PATH pnpm or recursive Desktop Host launch is required. Both routes also enforce the Host connection's authentication before the existing loopback/token checks.
+
+ ## Bootstrap installation
+
+ The installer itself must be present in the Profile before its page can be used. Install a reviewed release archive through the official CLI, then restart the Profile:
+
+ ```sh
+-dsh plugin --profile web add ./dsh-offline-plugin-installer-0.10.0.tgz
++dsh plugin --profile web add ./dsh-offline-plugin-installer-0.9.0.tgz
+ ```
+
+ Harness Desktop can embed and seed this one reviewed archive during runtime staging. Once present, later offline plugin packages are installed from the page without a terminal.
+@@ -32,7 +32,7 @@ source and match its SHA-512 runtime-manifest entry.
+
+ ## Page workflow
+
+-1. Open **Settings → Offline install**.
++1. Open **Settings → Plugins → Offline install**.
+ 2. Select one built npm `.tgz` package.
+ 3. Choose **Upload and install**.
+ 4. Review the validated package name and version.
+@@ -48,7 +48,7 @@ The uploaded tarball must:
+ - declare a valid lower-case npm package name, semantic version, Node engine range, Host `main`, `exports["."]`, and `dsh.bundle.patch`;
+ - contain the declared Host entry and patch file;
+ - expose `exports["./client"]` when it declares `dsh.client`;
+-- require Cordis `4.2.0-alpha.1` and every declared `@deepseek-ai/dsh-*` peer at `0.2.3-alpha.2` exactly;
++- require Cordis `4.0.5` and every declared `@deepseek-ai/dsh-*` peer at `0.2.1-rc.3` exactly;
+ - contain no absolute/traversal paths, duplicate entries, links, device entries, or `preinstall`/`install`/`postinstall` scripts;
+ - remain within the configured compressed bytes, expanded bytes, and entry-count ceilings.
+
+@@ -70,8 +70,8 @@ Installation always passes `--offline --ignore-scripts --save-exact`. A self-con
+ | `maxStoredBytes` | 2 GiB | Retained plus incoming archive ceiling |
+ | `installTimeoutMs` | 300,000 | DSH CLI deadline |
+ | `maxCliOutputBytes` | 65,536 | Per-stream Host-only diagnostic tail |
+-| `expectedHarnessVersion` | `0.2.3-alpha.2` | Exact accepted DSH peer version |
+-| `expectedCordisVersion` | `4.2.0-alpha.1` | Exact accepted Cordis peer version |
++| `expectedHarnessVersion` | `0.2.1-rc.3` | Exact accepted DSH peer version |
++| `expectedCordisVersion` | `4.0.5` | Exact accepted Cordis peer version |
+ | `allowedPackagePrefixes` | `[]` | Optional package-name prefix allowlist |
+
+ For a custom Profile, restate the entire config row and change `profile`; leaving the package default at `web` would install into the wrong Profile.
+@@ -98,4 +98,21 @@ npm pack
+
+ `npm run check` covers strict type checking, behavior and lifecycle tests, coverage, the keyless user-visible copy snapshot, built entry points, and packed contents. Assembled Profile and desktop tests remain separate acceptance layers.
+
+-Harness Desktop for Linux embeds this reviewed archive and uses the official CLI to seed it into the Web Profile. Close the application and reopen it after installing a plugin. Alpha 2 uses the public `settings.section` contribution for the installer page and WebServer route authentication for Host admission. Rebuild archives whose exact peers target an earlier Harness release.
++Native Desktop embeds the exact reviewed archive and package tree in its application runtime, composing the package-owned row for the desktop Profile. It does not copy plugin behavior into Electron. Closing the window hides it to the tray; choose Exit and relaunch after installing a plugin.
++
++Upstream 0.2.1 removes runtime invariant packages and `./invariant` exports; custom Profiles and extensions using them must be updated. Input-dock extensions overriding the retired `stats` row must use `activity` and `usage`. This installer does not consume those removed seams. Older archives must be rebuilt against Harness 0.2.1-rc.3 and Cordis 4.0.5.
++
++Since alpha.4 the native runtime no longer ships a standalone `dsh-client-ui-slots`
++package. This plugin uses that public package only for TypeScript types and module
++augmentation, so it is an exact development dependency, not a runtime peer. The
++built Host/browser entries do not import it; the upstream renderer supplies the
++slots service. Rebuild older installer archives that declared it as a runtime peer.
++
++
++The Desktop release tests this package with the rc.3 source snapshot identified
++by its native upstream manifest. The plugin is compiled against exact published
++rc.3 public exports. Custom integrations must move `PROFILE_TEMPLATES` /
++`DEFAULT_PROFILE_BUNDLES` imports from `dsh-app-boot` to `dsh-official-bundles`;
++retired `tools.mode` / `DSH_TOOLS_MODE` overrides must follow the current
++executor-plugin and native/PTC preset configuration. This installer does not
++consume those retired interfaces or add a separate execution policy.
+diff --git b/cordis.patch.yml a/cordis.patch.yml
+index 65c66e2..3b61bdf 100644
+--- b/cordis.patch.yml
++++ a/cordis.patch.yml
+@@ -12,6 +12,6 @@
+         maxStoredBytes: 2147483648
+         installTimeoutMs: 300000
+         maxCliOutputBytes: 65536
+-        expectedHarnessVersion: 0.2.3-alpha.2
+-        expectedCordisVersion: 4.2.0-alpha.1
++        expectedHarnessVersion: 0.2.1-rc.3
++        expectedCordisVersion: 4.0.5
+         allowedPackagePrefixes: []
+diff --git b/docs/architecture.md a/docs/architecture.md
+index 92d80aa..e49c887 100644
+--- b/docs/architecture.md
++++ a/docs/architecture.md
+@@ -4,7 +4,7 @@
+
+ ```mermaid
+ flowchart LR
+-  Page[Offline install settings section]
++  Page[Plugins settings tab]
+   Routes[Loopback Host routes]
+   Validator[Streaming tarball validator]
+   Store[Profile-local archive store]
+diff --git b/docs/development.md a/docs/development.md
+index e8a51fa..e857f45 100644
+--- b/docs/development.md
++++ a/docs/development.md
+@@ -16,7 +16,7 @@ npm run test:built
+
+ The Host bundle keeps published DSH/Cordis services external and bundles the tar parser so the released installer has no runtime npm dependencies of its own. The browser bundle uses the DSH lazy-CJS module wrapper and leaves only React runtime imports external.
+
+-Focused tests should cover the changed module first. Archive changes need valid and hostile tar fixtures. Process changes need success, failure, timeout, cancellation, unload, and output-bound cases. Browser changes need component behavior, client response parsing, settings section registration, and the reviewed copy snapshot. Packaging changes need a built-entry import and `npm pack --dry-run` contents check.
++Focused tests should cover the changed module first. Archive changes need valid and hostile tar fixtures. Process changes need success, failure, timeout, cancellation, unload, and output-bound cases. Browser changes need component behavior, client response parsing, tab registration, and the reviewed copy snapshot. Packaging changes need a built-entry import and `npm pack --dry-run` contents check.
+
+ ## Assembled Profile loop
+
+@@ -28,7 +28,7 @@ npm pack
+ dsh plugin --profile web add ./dsh-offline-plugin-installer-0.9.0.tgz
+ ```
+
+-Run against a disposable `DSH_HOME`. Confirm resolved config contains the package row and the Web boot manifest includes its client. Open Settings → Offline install, install a separate known-good fixture package, restart the Profile, and verify the fixture's Host/Web surfaces. Also exercise a missing offline dependency, bad peer version, oversized archive, cancellation, timeout, and clean shutdown.
++Run against a disposable `DSH_HOME`. Confirm resolved config contains the package row and the Web boot manifest includes its client. Open Settings → Plugins → Offline install, install a separate known-good fixture package, restart the Profile, and verify the fixture's Host/Web surfaces. Also exercise a missing offline dependency, bad peer version, oversized archive, cancellation, timeout, and clean shutdown.
+
+ Never retain real user packages, profile paths, tokens, or raw Host logs as repository evidence.
+
+diff --git b/docs/security.md a/docs/security.md
+index 02ea45c..e3452f7 100644
+--- b/docs/security.md
++++ a/docs/security.md
+@@ -31,4 +31,4 @@ Only one package operation may run. The default operation is the published imple
+ - A trusted package publisher and distribution/signing procedure remain deployment responsibilities. SHA-256 is displayed for comparison but no signature format is imposed.
+ - Windows process-tree behavior requires Windows CI and native acceptance.
+ - A successful install does not prove that the installed plugin is safe, starts successfully after restart, or passes subjective UI review.
+-- Both routes declare WebServer authentication as required before the loopback and same-origin checks. Mutations additionally require the per-process installer token. The Web session supplies the authority-bound Harness cookie. Unauthenticated requests are refused before the session handler can issue a token. Network-exposed binding remains forbidden.
++- Both routes require the active Host connection authentication, then loopback/same-origin checks. Mutations additionally require the per-process installer token. Native Desktop forwards its own authenticated Host cookie; arbitrary unauthenticated requests cannot retrieve the token. Network-exposed binding remains forbidden.
+diff --git b/package.json a/package.json
+index 2427dbf..baacf0c 100644
+--- b/package.json
++++ a/package.json
+@@ -1,6 +1,6 @@
+ {
+   "name": "dsh-offline-plugin-installer",
+-  "version": "0.10.0",
++  "version": "0.9.0",
+   "description": "A loopback-only DeepSeek Harness Web plugin for validating and installing offline plugin tarballs into the active profile.",
+   "type": "module",
+   "main": "./lib/index.js",
+@@ -52,7 +52,7 @@
+   ],
+   "license": "MIT",
+   "engines": {
+-    "node": "^24.22.3 || >=26.13.1"
++    "node": ">=24.9.0"
+   },
+   "dsh": {
+     "bundle": {
+@@ -68,24 +68,25 @@
+     }
+   },
+   "peerDependencies": {
+-    "@deepseek-ai/cordis": "4.2.0-alpha.1",
+-    "@deepseek-ai/dsh-app-boot": "0.2.3-alpha.2",
+-    "@deepseek-ai/dsh-client-locale": "0.2.3-alpha.2",
+-    "@deepseek-ai/dsh-client-ui-renderer": "0.2.3-alpha.2",
+-    "@deepseek-ai/dsh-client-ui-settings": "0.2.3-alpha.2",
+-    "@deepseek-ai/dsh-host-webserver": "0.2.3-alpha.2",
+-    "@deepseek-ai/schemastery": "3.20.0-alpha.1",
+-    "@deepseek-ai/dsh-plugin-manager": "0.2.3-alpha.2"
++    "@deepseek-ai/cordis": "4.0.5",
++    "@deepseek-ai/dsh-app-boot": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-client-locale": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-client-ui-renderer": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-host-webserver": "0.2.1-rc.3",
++    "@deepseek-ai/schemastery": "3.18.5",
++    "@deepseek-ai/dsh-plugin-manager": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-client-connection": "0.2.1-rc.3"
+   },
+   "devDependencies": {
+-    "@deepseek-ai/cordis": "4.2.0-alpha.1",
+-    "@deepseek-ai/dsh-app-boot": "0.2.3-alpha.2",
+-    "@deepseek-ai/dsh-client-locale": "0.2.3-alpha.2",
+-    "@deepseek-ai/dsh-client-ui-renderer": "0.2.3-alpha.2",
+-    "@deepseek-ai/dsh-client-ui-settings": "0.2.3-alpha.2",
+-    "@deepseek-ai/dsh-client-ui-slots": "0.2.3-alpha.2",
+-    "@deepseek-ai/dsh-host-webserver": "0.2.3-alpha.2",
+-    "@deepseek-ai/schemastery": "3.20.0-alpha.1",
++    "@deepseek-ai/cordis": "4.0.5",
++    "@deepseek-ai/dsh-app-boot": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-client-locale": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-client-ui-renderer": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-client-ui-settings": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-client-ui-slots": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-host-webserver": "0.2.1-rc.3",
++    "@deepseek-ai/schemastery": "3.18.5",
+     "@testing-library/dom": "^10.4.1",
+     "@testing-library/react": "^16.1.0",
+     "@types/node": "^24.10.1",
+@@ -100,6 +101,7 @@
+     "tsdown": "^0.22.14",
+     "typescript": "^5.9.3",
+     "vitest": "4.1.11",
+-    "@deepseek-ai/dsh-plugin-manager": "0.2.3-alpha.2"
++    "@deepseek-ai/dsh-plugin-manager": "0.2.1-rc.3",
++    "@deepseek-ai/dsh-client-connection": "0.2.1-rc.3"
+   }
+ }
+diff --git b/src/client/OfflineInstallerPage.tsx a/src/client/OfflineInstallerPage.tsx
+index 851bc7d..634a67f 100644
+--- b/src/client/OfflineInstallerPage.tsx
++++ a/src/client/OfflineInstallerPage.tsx
+@@ -13,7 +13,7 @@ export interface OfflineInstallerPageInjected {
+ }
+
+ export type OfflineInstallerPageProps =
+-  PropsRuntime<'settings.section'>
++  PropsRuntime<'settings.plugins.tab'>
+   & PropsLocale<'settings.offlinePluginInstaller'>
+   & InjectFace<OfflineInstallerPageInjected>
+
+@@ -50,7 +50,7 @@ function validateFile(
+   return undefined
+ }
+
+-/** Explicit upload-and-install page in Settings. */
++/** Explicit upload-and-install tab in Settings > Plugins. */
+ export function OfflineInstallerPage(props: OfflineInstallerPageProps): ReactNode {
+   const { installPackage, loadSession, t } = props
+   const inputRef = useRef<HTMLInputElement>(null)
+diff --git b/src/client/index.ts a/src/client/index.ts
+index dcfd010..3868f7f 100644
+--- b/src/client/index.ts
++++ a/src/client/index.ts
+@@ -1,4 +1,4 @@
+-/** Browser half: an offline installation page in Harness Settings. */
++/** Browser half: an offline installation tab in the standard Plugins settings section. */
+ import type { Context as ClientContext } from '@deepseek-ai/cordis'
+ import type {} from '@deepseek-ai/dsh-client-locale/client'
+ import type {} from '@deepseek-ai/dsh-client-ui-renderer/client'
+@@ -42,8 +42,8 @@ export function apply(ctx: ClientContext): void {
+     loadSession: loadInstallerSession,
+     installPackage: installOfflinePackage,
+   })
+-  ctx.slots.inject('settings.section', () => ctx.slots.register({
+-    name: 'settings.section',
++  ctx.slots.inject('settings.plugins.tab', () => ctx.slots.register({
++    name: 'settings.plugins.tab',
+     id: 'offline-install',
+     order: 20,
+     label: () => t('tab'),
+diff --git b/src/config.ts a/src/config.ts
+index 0da95d2..9109050 100644
+--- b/src/config.ts
++++ a/src/config.ts
+@@ -13,8 +13,8 @@ export const DEFAULT_CONFIG = Object.freeze({
+   maxStoredBytes: 2 * 1024 * 1024 * 1024,
+   installTimeoutMs: 5 * 60 * 1_000,
+   maxCliOutputBytes: 64 * 1024,
+-  expectedHarnessVersion: '0.2.3-alpha.2',
+-  expectedCordisVersion: '4.2.0-alpha.1',
++  expectedHarnessVersion: '0.2.1-rc.3',
++  expectedCordisVersion: '4.0.5',
+   allowedPackagePrefixes: Object.freeze([]) as readonly string[],
+ })
+
+diff --git b/src/index.ts a/src/index.ts
+index bc08fc2..13abab2 100644
+--- b/src/index.ts
++++ a/src/index.ts
+@@ -1,6 +1,7 @@
+ import { randomBytes } from 'node:crypto'
+ import type { Context } from '@deepseek-ai/cordis'
+ import type {} from '@deepseek-ai/dsh-host-webserver'
++import type {} from '@deepseek-ai/dsh-client-connection'
+ import type { InstallerSessionSnapshot } from './api/types.js'
+ import { Config, resolveConfig, type Config as PluginConfig } from './config.js'
+ import { createInstallerRoutes } from './http/routes.js'
+@@ -11,7 +12,7 @@ import { OfflinePackageInstaller } from './install/installer.js'
+ import { ArchiveStore } from './store/archive-store.js'
+
+ export const name = 'dsh-offline-plugin-installer'
+-export const inject = ['webServer', 'profileContext']
++export const inject = ['webServer', 'connection', 'profileContext']
+ export { Config }
+ export type { PluginConfig }
+
+@@ -72,7 +73,11 @@ export async function apply(ctx: Context, config: PluginConfig): Promise<void> {
+   })
+   for (const route of routes) {
+     ctx.effect(
+-      () => ctx.webServer.register({ ...route, auth: 'required' }),
++      () => ctx.webServer.register({ ...route, handler: (request, response) => {
++        const rejection = ctx.connection.requestRejection(request)
++        if (rejection !== undefined) { response.writeHead(rejection); response.end(); return }
++        return route.handler(request, response)
++      } }),
+       `dsh-offline-plugin-installer:route:${route.path}`,
+     )
+   }
+diff --git b/tests/archive/inspect.spec.ts a/tests/archive/inspect.spec.ts
+index 03ab211..9469432 100644
+--- b/tests/archive/inspect.spec.ts
++++ a/tests/archive/inspect.spec.ts
+@@ -11,8 +11,8 @@ const POLICY: ArchivePolicy = {
+   maxUploadBytes: 1024 * 1024,
+   maxExpandedBytes: 2 * 1024 * 1024,
+   maxArchiveEntries: 100,
+-  expectedHarnessVersion: '0.2.3-alpha.2',
+-  expectedCordisVersion: '4.2.0-alpha.1',
++  expectedHarnessVersion: '0.2.1-rc.3',
++  expectedCordisVersion: '4.0.5',
+   allowedPackagePrefixes: [],
+ }
+
+@@ -48,7 +48,7 @@ describe('inspectArchive', () => {
+     await expect(inspectArchive(current, defaults)).resolves.toMatchObject({ name: 'dsh-fixture-plugin' })
+     const previous = join(directory, 'previous.tgz')
+     await createArchive(previous, { manifest: fixtureManifest({ peerDependencies: {
+-      '@deepseek-ai/cordis': '4.2.0-alpha.1',
++      '@deepseek-ai/cordis': '4.0.5',
+       '@deepseek-ai/dsh-host-webserver': previousVersion,
+     } }) })
+     await expect(inspectArchive(previous, defaults)).rejects.toMatchObject({ code: 'PACKAGE_INCOMPATIBLE' })
+@@ -114,7 +114,7 @@ describe('inspectArchive', () => {
+       manifest: fixtureManifest({
+         peerDependencies: {
+           '@deepseek-ai/cordis': '4.0.0',
+-          '@deepseek-ai/dsh-host-webserver': '0.2.3-alpha.2',
++          '@deepseek-ai/dsh-host-webserver': '0.2.1-rc.3',
+         },
+       }),
+     })
+diff --git b/tests/client/apply.spec.ts a/tests/client/apply.spec.ts
+index e1bd600..091b16d 100644
+--- b/tests/client/apply.spec.ts
++++ a/tests/client/apply.spec.ts
+@@ -33,7 +33,7 @@ class TestSlots extends Service {
+ }
+
+ describe('offline installer browser client apply', () => {
+-  it('registers and disposes its localized settings section and inline styles', async () => {
++  it('registers and disposes its localized Plugins tab and inline styles', async () => {
+     const ctx = new Context()
+     const dictionaries = new Map<string, Record<string, string>>()
+     ctx.provide('locale', {
+@@ -52,7 +52,7 @@ describe('offline installer browser client apply', () => {
+
+     const entry = slots.records[0]!
+     expect(entry.component).toBe(OfflineInstallerPage)
+-    expect(entry.options).toMatchObject({ name: 'settings.section', id: 'offline-install', order: 20, locale: NS })
++    expect(entry.options).toMatchObject({ id: 'offline-install', order: 20, locale: NS })
+     expect((entry.options.label as () => string)()).toBe('离线安装')
+     expect(document.head.querySelector('style[data-plugin-css="dsh-offline-plugin-installer"]')).not.toBeNull()
+     expect(entry.options.inject).toBeTypeOf('function')
+diff --git b/tests/client/page.spec.tsx a/tests/client/page.spec.tsx
+index 11c17bd..942bf1f 100644
+--- b/tests/client/page.spec.tsx
++++ a/tests/client/page.spec.tsx
+@@ -25,7 +25,6 @@ function t(key: OfflineInstallerLocaleKey): string { return zh[key] }
+
+ function props(overrides: Partial<OfflineInstallerPageProps> = {}): OfflineInstallerPageProps {
+   return {
+-    close: () => {},
+     t,
+     loadSession: () => Promise.resolve(session),
+     installPackage: () => Promise.resolve(success),
+diff --git b/tests/config.spec.ts a/tests/config.spec.ts
+index 112489f..4269bb5 100644
+--- b/tests/config.spec.ts
++++ a/tests/config.spec.ts
+@@ -25,8 +25,8 @@ describe('resolveConfig', () => {
+     expect(result).toMatchObject({
+       profile: 'web',
+       archiveStoreDir: '.dsh-offline-plugin-packages',
+-      expectedHarnessVersion: '0.2.3-alpha.2',
+-      expectedCordisVersion: '4.2.0-alpha.1',
++      expectedHarnessVersion: '0.2.1-rc.3',
++      expectedCordisVersion: '4.0.5',
+     })
+     expect(result.profileDir).toBe(join(home, 'profiles', 'web'))
+     expect(result.archiveStorePath).toBe(join(result.profileDir, result.archiveStoreDir))
+diff --git b/tests/helpers/archive.ts a/tests/helpers/archive.ts
+index dc05424..654c640 100644
+--- b/tests/helpers/archive.ts
++++ a/tests/helpers/archive.ts
+@@ -29,8 +29,8 @@ export function fixtureManifest(overrides: Record<string, unknown> = {}): Record
+     engines: { node: '^22.19.0 || >=24.0.0' },
+     dsh: { bundle: { patch: './cordis.patch.yml' } },
+     peerDependencies: {
+-      '@deepseek-ai/cordis': '4.2.0-alpha.1',
+-      '@deepseek-ai/dsh-host-webserver': '0.2.3-alpha.2',
++      '@deepseek-ai/cordis': '4.0.5',
++      '@deepseek-ai/dsh-host-webserver': '0.2.1-rc.3',
+     },
+     ...overrides,
+   }
+diff --git b/tests/host/apply.spec.ts a/tests/host/apply.spec.ts
+index 8e96ce2..9d06ef5 100644
+--- b/tests/host/apply.spec.ts
++++ a/tests/host/apply.spec.ts
+@@ -45,11 +45,15 @@ describe('Host plugin apply', () => {
+   it('uses the active package runner and protects routes with Host authentication', async () => {
+     const ctx = new Context()
+     ctx.provide('profileContext', { name: 'web', dir: join(home, 'profiles', 'web') } as never)
++    const rejection = vi.fn((): number | undefined => 401)
++    ctx.provide('connection', { requestRejection: rejection } as never)
+     const webServer = new TestWebServer(ctx, '127.0.0.1')
+     const fiber = ctx.plugin(Plugin, {})
+     await fiber
+     const writeHead = vi.fn(); const end = vi.fn()
+-    expect(webServer.routes.map(route => route.auth)).toEqual(['required', 'required'])
++    await webServer.routes[0]?.handler({} as never, { writeHead, end } as never)
++    expect(writeHead).toHaveBeenCalledWith(401)
++    rejection.mockReturnValue(undefined)
+     await webServer.routes[0]?.handler({ method: 'GET', headers: { host: '127.0.0.1:8000' } } as never, { writeHead, end } as never)
+     expect(writeHead).toHaveBeenLastCalledWith(200, expect.any(Object))
+     await fiber.dispose(); await ctx.fiber.dispose()
+@@ -58,6 +62,7 @@ describe('Host plugin apply', () => {
+   it('rejects a configured Profile that differs from the active launcher', async () => {
+     const ctx = new Context()
+     ctx.provide('profileContext', { name: 'desktop', dir: join(home, 'profiles', 'desktop') } as never)
++    ctx.provide('connection', {} as never)
+     new TestWebServer(ctx, '127.0.0.1')
+     await expect(ctx.plugin(Plugin, {})).rejects.toThrow('must match the active Profile')
+     await ctx.fiber.dispose()
+@@ -65,6 +70,7 @@ describe('Host plugin apply', () => {
+   it('registers exactly two loopback routes and disposes them', async () => {
+     const ctx = new Context()
+     ctx.provide('profileContext', { name: 'web', dir: join(home, 'profiles', 'web') } as never)
++    ctx.provide('connection', { requestRejection: () => undefined } as never)
+     const webServer = new TestWebServer(ctx, '127.0.0.1')
+     const fiber = ctx.plugin({
+       name: Plugin.name,
+@@ -73,7 +79,7 @@ describe('Host plugin apply', () => {
+       apply: Plugin.apply,
+     }, { cliEntryPath: cliFixture })
+     await fiber
+-    expect(Plugin.inject).toEqual(['webServer', 'profileContext'])
++    expect(Plugin.inject).toEqual(['webServer', 'connection', 'profileContext'])
+     expect(webServer.routes.map(route => route.path).sort()).toEqual([
+       '/dsh-offline-plugin-installer/install.tgz',
+       '/dsh-offline-plugin-installer/session.json',
+@@ -86,6 +92,7 @@ describe('Host plugin apply', () => {
+   it('fails before registering a mutation route on a network-exposed Web server', async () => {
+     const ctx = new Context()
+     ctx.provide('profileContext', { name: 'web', dir: join(home, 'profiles', 'web') } as never)
++    ctx.provide('connection', { requestRejection: () => undefined } as never)
+     const webServer = new TestWebServer(ctx, '0.0.0.0')
+     const fiber = ctx.plugin({
+       name: Plugin.name,
+diff --git b/tests/install/installer.spec.ts a/tests/install/installer.spec.ts
+index f220dd2..6f38a05 100644
+--- b/tests/install/installer.spec.ts
++++ a/tests/install/installer.spec.ts
+@@ -14,8 +14,8 @@ const policy: ArchivePolicy = {
+   maxUploadBytes: 1024 * 1024,
+   maxExpandedBytes: 2 * 1024 * 1024,
+   maxArchiveEntries: 100,
+-  expectedHarnessVersion: '0.2.3-alpha.2',
+-  expectedCordisVersion: '4.2.0-alpha.1',
++  expectedHarnessVersion: '0.2.1-rc.3',
++  expectedCordisVersion: '4.0.5',
+   allowedPackagePrefixes: [],
+ }
+
+diff --git b/tests/install/profile-runner.spec.ts a/tests/install/profile-runner.spec.ts
+index bbd321c..3e587a2 100644
+--- b/tests/install/profile-runner.spec.ts
++++ a/tests/install/profile-runner.spec.ts
+@@ -4,7 +4,7 @@ import { runPluginCommand } from '@deepseek-ai/dsh-plugin-manager/operations'
+ import { ProfilePackageRunner } from '../../src/install/profile-runner.js'
+ vi.mock('@deepseek-ai/dsh-plugin-manager/operations', () => ({ runPluginCommand: vi.fn() }))
+ const run = vi.mocked(runPluginCommand)
+-const profile: ProfileContext = { patchPath: '/patch', startedBundles: [], overlayPaths: [], telemetryDisabledEnv: undefined, name: 'desktop', dir: '/home/profiles/desktop', installAnchor: '/runtime/dsh/package.json', cwd: '/workspace', home: '/home',
++const profile: ProfileContext = { patchPath: '/patch', startedBundles: [], overlays: [], telemetryDisabledEnv: undefined, name: 'desktop', dir: '/home/profiles/desktop', installAnchor: '/runtime/dsh/package.json', cwd: '/workspace', home: '/home',
+   packageManager: { command: '/app/electron', args: ['--expose-internals', '/app/pnpm.mjs'], env: { ELECTRON_RUN_AS_NODE: '1' } },
+ }
+
+diff --git b/tests/packaging/structure.spec.ts a/tests/packaging/structure.spec.ts
+index bea0aa5..d03af26 100644
+--- b/tests/packaging/structure.spec.ts
++++ a/tests/packaging/structure.spec.ts
+@@ -24,8 +24,8 @@ describe('DSH offline installer package structure', () => {
+   it('declares independent Host, Web client, patch, and exact peer surfaces', () => {
+     expect(packageJson).toMatchObject({
+       name: 'dsh-offline-plugin-installer',
+-      version: '0.10.0',
+-      engines: { node: '^24.22.3 || >=26.13.1' },
++      version: '0.9.0',
++      engines: { node: '>=24.9.0' },
+       type: 'module',
+       main: './lib/index.js',
+       types: './lib/types/index.d.ts',
+@@ -43,9 +43,9 @@ describe('DSH offline installer package structure', () => {
+     })
+     expect(packageJson.dependencies).toBeUndefined()
+     expect(packageJson.peerDependencies).toMatchObject({
+-      '@deepseek-ai/cordis': '4.2.0-alpha.1',
+-      '@deepseek-ai/dsh-app-boot': '0.2.3-alpha.2',
+-      '@deepseek-ai/dsh-host-webserver': '0.2.3-alpha.2',
++      '@deepseek-ai/cordis': '4.0.5',
++      '@deepseek-ai/dsh-app-boot': '0.2.1-rc.3',
++      '@deepseek-ai/dsh-host-webserver': '0.2.1-rc.3',
+     })
+   })
+
+@@ -79,7 +79,7 @@ describe('DSH offline installer package structure', () => {
+     // package is needed only to build this plugin's TypeScript declarations.
+     const slots = '@deepseek-ai/dsh-client-ui-slots'
+     expect(packageJson.peerDependencies).not.toHaveProperty(slots)
+-    expect(packageJson.devDependencies).toMatchObject({ [slots]: '0.2.3-alpha.2' })
++    expect(packageJson.devDependencies).toMatchObject({ [slots]: '0.2.1-rc.3' })
+     for (const entry of ['lib/index.js', 'lib/client.js']) {
+       expect(readFileSync(join(projectRoot, entry), 'utf8')).not.toContain(slots)
+     }
+@@ -112,8 +112,8 @@ describe('DSH offline installer package structure', () => {
+       'profile: web',
+       'maxUploadBytes: 268435456',
+       'installTimeoutMs: 300000',
+-      'expectedHarnessVersion: 0.2.3-alpha.2',
+-      'expectedCordisVersion: 4.2.0-alpha.1',
++      'expectedHarnessVersion: 0.2.1-rc.3',
++      'expectedCordisVersion: 4.0.5',
+     ]) expect(patch).toContain(fragment)
+
+     const candidates = [

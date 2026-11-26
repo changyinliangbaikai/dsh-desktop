@@ -33,7 +33,7 @@ class TestSlots extends Service {
 }
 
 describe('offline installer browser client apply', () => {
-  it('registers and disposes its localized Plugins tab and inline styles', async () => {
+  it('registers and disposes its localized settings section and inline styles', async () => {
     const ctx = new Context()
     const dictionaries = new Map<string, Record<string, string>>()
     ctx.provide('locale', {
@@ -52,7 +52,7 @@ describe('offline installer browser client apply', () => {
 
     const entry = slots.records[0]!
     expect(entry.component).toBe(OfflineInstallerPage)
-    expect(entry.options).toMatchObject({ id: 'offline-install', order: 20, locale: NS })
+    expect(entry.options).toMatchObject({ name: 'settings.section', id: 'offline-install', order: 20, locale: NS })
     expect((entry.options.label as () => string)()).toBe('离线安装')
     expect(document.head.querySelector('style[data-plugin-css="dsh-offline-plugin-installer"]')).not.toBeNull()
     expect(entry.options.inject).toBeTypeOf('function')

@@ -4,7 +4,7 @@ import { runPluginCommand } from '@deepseek-ai/dsh-plugin-manager/operations'
 import { ProfilePackageRunner } from '../../src/install/profile-runner.js'
 vi.mock('@deepseek-ai/dsh-plugin-manager/operations', () => ({ runPluginCommand: vi.fn() }))
 const run = vi.mocked(runPluginCommand)
-const profile: ProfileContext = { patchPath: '/patch', startedBundles: [], overlays: [], telemetryDisabledEnv: undefined, name: 'desktop', dir: '/home/profiles/desktop', installAnchor: '/runtime/dsh/package.json', cwd: '/workspace', home: '/home',
+const profile: ProfileContext = { patchPath: '/patch', startedBundles: [], overlayPaths: [], telemetryDisabledEnv: undefined, name: 'desktop', dir: '/home/profiles/desktop', installAnchor: '/runtime/dsh/package.json', cwd: '/workspace', home: '/home',
   packageManager: { command: '/app/electron', args: ['--expose-internals', '/app/pnpm.mjs'], env: { ELECTRON_RUN_AS_NODE: '1' } },
 }
 

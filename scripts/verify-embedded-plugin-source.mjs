@@ -38,8 +38,7 @@ function verifyArchiveIdentity(pluginSource, runtimePlugin, harnessVersion) {
     || runtimePlugin.archive !== expectedArchive) {
     throw new Error('Desktop runtime manifest does not match the in-tree offline plugin identity.')
   }
-  if (harnessVersion !== undefined
-    && pluginManifest.peerDependencies?.['@deepseek-ai/dsh-app-boot'] !== harnessVersion) {
+  if (pluginManifest.peerDependencies?.['@deepseek-ai/dsh-app-boot'] !== harnessVersion) {
     throw new Error(`Offline installer ${pluginManifest.version} does not target Harness ${harnessVersion}.`)
   }
 }
@@ -127,7 +126,7 @@ try {
       verifyPack(pluginSource, record, temporaryRoot)
     }
   } else {
-    verifyArchiveIdentity(pluginRoot, installer)
+    verifyArchiveIdentity(pluginRoot, installer, runtimeManifest.version)
     verifyPack(pluginRoot, installer, temporaryRoot)
   }
 } finally {

@@ -1,12 +1,12 @@
 {
   "name": "dsh-windows-desktop",
-  "version": "0.6.0-native.5",
+  "version": "0.6.0-native.6",
   "private": true,
   "type": "module",
   "description": "Pinned native DeepSeek Harness desktop builds with intranet search defaults",
   "main": "dist/main/index.js",
   "engines": {
-    "node": ">=24.9.0"
+    "node": "^24.22.3 || >=26.13.1"
   },
   "packageManager": "pnpm@11.7.0",
   "scripts": {

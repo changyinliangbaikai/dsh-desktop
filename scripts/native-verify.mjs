@@ -36,6 +36,7 @@ const nodeVersion = execFileSync(join(unpacked, intranetExecutable), ['-p', 'pro
 assertMinimumNodeVersion(nodeVersion, pin.nodeMinimum);
 const inventory = JSON.parse(read('dsh/desktop-runtime.json'));
 assert.equal(inventory.release.version, pin.version);
+assert.equal(inventory.release.nodeVersion, nodeVersion);
 assert.equal(inventory.platform, 'win32');
 assert.equal(inventory.arch, 'x64');
 for (const file of inventory.files) {
@@ -43,13 +44,15 @@ for (const file of inventory.files) {
   assert.equal(body.length, file.bytes, file.path);
   assert.equal(createHash('sha256').update(body).digest('hex'), file.sha256, file.path);
 }
-// The upstream preparation resolves a fresh production graph. Prove that it
-// selected the reviewed Windows path fix, rather than inferring from its range.
+// Verify the exact engine selected in the newly resolved production graph.
 const office = pin.officeKit;
 assert.equal(JSON.parse(read('dsh/node_modules/@deepseek-ai/libreoffice-kit/package.json')).version, office.version);
 assert.equal(createHash('sha256').update(read('dsh/node_modules/@deepseek-ai/libreoffice-kit/lib/index.js')).digest('hex'), office.entrySha256);
 assert.equal(JSON.parse(read(`dsh/node_modules/${office.windowsEngine.name}/package.json`)).version, office.windowsEngine.version);
-assert.equal(createHash('sha256').update(read(`dsh/node_modules/${office.windowsEngine.name}/bin/libreoffice-kit.exe`)).digest('hex'), office.windowsEngine.executableSha256);
+const engineRoot = `dsh/node_modules/${office.windowsEngine.name}`;
+const prebuilds = JSON.parse(read(`${engineRoot}/prebuilds.json`));
+assert.equal(prebuilds.engine.executable, office.windowsEngine.executable);
+assert.equal(createHash('sha256').update(read(`${engineRoot}/${office.windowsEngine.executable}`)).digest('hex'), office.windowsEngine.executableSha256);
 const overlay = JSON.parse(readFileSync(join(target, 'intranet-overlay.json')));
 const embedded = pin.embeddedPlugins[0];
 assert.equal(overlay.embeddedPlugin.integrity, embedded.integrity);
